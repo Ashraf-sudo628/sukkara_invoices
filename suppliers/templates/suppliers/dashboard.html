@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+<style>
+    @media (max-width: 768px) {
+        /* تحسين نمط الكروت */
+        .card {
+            width: 95% !important;
+            margin: auto;
+        }
+        /* تحسين الجدول ليكون مناسبًا للجوال */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* تصغير الصور في الـ Navbar */
+        .navbar-brand img {
+            width: 35px !important;
+            height: 35px !important;
+        }
+        /* تصغير زر تسجيل الخروج */
+        .navbar-nav .dropdown-menu {
+            font-size: 14px;
+        }
+    }
+
+</style>
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center" style="color: #a58371;">لوحة التحكم</h2>
+        <div class="card p-4 shadow-lg">
+            <h4>البيانات </h4>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <label>اسم المورد:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.company_name }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>البريد الالكتروني</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.email }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>رقم الهاتف:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.phone_number }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>الرصيد</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.current_balance }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>العنوان:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.address }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>رقم الحساب البنكي:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.bank_account }}" readonly>
+                </div>
+            </div>
+            {% comment %} <div class="text-left mt-4">
+                <a href="{% url 'edit_supplier_profile' %}" class="btn btn-success">تعديل البيانات</a>
+            </div> {% endcomment %}
+        </div>
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <div class="row">
+                <h4 class="col-6">فواتيرك اليومية</h4>
+            </div>
+            <hr>
+            {% if invoices %}
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>رقم الفاتوره</th>
+                        <th>التاريخ</th>
+                        <th>الإجمالي</th>
+                        <th>المدفوع</th>
+                        <th>المتبقي</th>
+                        <th>الحاله</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-container">
+                    {% for invoice in invoices %}
+                    <tr class="order-item-form">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ invoice.invoice_date }}</td>
+                        <td>{{ invoice.total_amount}} ريال</td>
+                        <td>{{ invoice.paid_amount}} ريال</td>
+                        <td>{{ invoice.remaining_amount}} ريال</td>
+                        <td><span class="badge bg-warning text-dark">{{ invoice.status }}</span></td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> عرض
+                                        </a>                                        
+                                    </li>
+                                </ul>
+                            </div>                                                                              
+                        </td> 
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">لا يوحد فواتير بعد.</p>
+            {% endif %}
+        </div>
+
+        {% comment %} <a href="{% url 'create_invoice' %}" class="btn btn-success w-100 mt-3">+ إنشاء فاتورة جديدة</a> {% endcomment %}
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <div class="row">
+                <h4 class="col-6">  طلباتك اليومية</h4>
+            </div>
+            <hr>
+            {% if orders %}
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>التاريخ</th>
+                        <th>المبلغ الإجمالي</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-container">
+                    {% for order in orders %}
+                    <tr class="order-item-form">
+                        <td>{{ forloop.counter  }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td>{{ order.total_price }} ريال</td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> عرض
+                                        </a>                                        
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'edit_order' order.id %}">
+                                            <i class="bi bi-pencil-fill me-1"></i> تعديل
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger delete-btn" href="{% url 'delete_order' order.id %}" data-order-id="{{ order.id }}">
+                                            <i class="bi bi-trash-fill me-1"></i> حذف
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>                                                                              
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-left col-6">
+                <a href="{% url 'create_order' %}" class="add">إنشاء طلب</a>
+            </div>
+            {% else %}
+            <p class="text-muted">لم تقم بإنشاء أي فواتير بعد.</p>
+            <div class="text-left col-6">
+                <a href="{% url 'create_order' %}" class="add">إنشاء طلب</a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll(".delete-btn").forEach(button => {
+        button.addEventListener("click", function(event) {
+            event.preventDefault();  // منع التوجيه الفوري عند النقر
+
+            let orderUrl = this.getAttribute("href"); // رابط الحذف
+
+            Swal.fire({
+                title: "هل أنت متأكد؟",
+                text: "لن تتمكن من استعادة هذا الطلب بعد الحذف!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "نعم، احذف!",
+                cancelButtonText: "إلغاء"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = orderUrl; // تنفيذ الحذف
+                }
+            });
+        });
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}نظام الفواتير{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+                background-color: #ffe8db; 
+                display: flex; flex-direction: 
+                column; min-height: 100vh; 
+            }
+            /* زر القائمة الجانبية */
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            z-index: 1100;
+            color : #a58371;
+        }
+
+        /* عند فتح الـ Sidebar، غير الأيقونة */
+        .sidebar.open + .sidebar-toggle i {
+            content: "\f00d"; /* أيقونة FontAwesome لإغلاق (X) */
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            color : #a58371;
+        }
+
+        /* في الشاشات الكبيرة، أخفِ الزر */
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: none;
+            }
+        }
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: #a58371 !important;
+        }
+        
+        thead {
+            background-color: #ffe8db;
+            color: #a58371;
+        }
+        .add {
+            background-color: #a58371;
+            color:rgb(255, 255, 255);
+            font-weight: bold;
+            border: none;
+            border-radius:5px;
+            padding: 10px 10px;
+            text-decoration: none;
+        }
+        .add:hover{
+            background: rgba(180, 163, 153, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            color: black;
+        }
+    </style>
+
+</head>
+<body>
+    {% if user.is_authenticated %}
+        {% comment %} {% include 'nav.html' %} {% endcomment %}
+        <div class="wrapper">
+            <button id="sidebarToggle" class="sidebar-toggle">
+                <i id="toggleIcon" class="fa fa-bars"></i>
+            </button>
+            {% include 'sidebar.html' %}
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+    {% else %}
+        {% block login %}
+        {% endblock %}
+        {% block register %}
+        {% endblock %}
+    {% endif %}
+
+    <script>
+        document.getElementById("sidebarToggle").addEventListener("click", function () {
+            var sidebar = document.getElementById("sidebar");
+            var content = document.querySelector(".content");
+            var icon = document.getElementById("toggleIcon");
+    
+            if (sidebar.classList.contains("open")) {
+                sidebar.style.width = "0";
+                content.style.marginRight = "0";
+                sidebar.classList.remove("open");
+                icon.classList.remove("fa-times");
+                icon.classList.add("fa-bars"); // ترجع للأيقونة الأصلية عند الإغلاق
+            } else {
+                sidebar.style.width = "250px";
+                content.style.marginRight = "250px";
+                sidebar.classList.add("open");
+                icon.classList.remove("fa-bars");
+                icon.classList.add("fa-times"); // أيقونة الإغلاق عند الفتح
+            }
+        });
+    </script>
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

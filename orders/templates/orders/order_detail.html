@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="card p-4 shadow-lg">
+        <div class="card p-4 shadow-lg">
+            <h4 class="">تفاصيل الطلب</h4>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <label>اسم الأسره</label>
+                    <input type="text" class="form-control" value="{{ order.supplier.company_name }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>رقم الهاتف</label>
+                    <input type="text" class="form-control" value="{{ order.supplier.phone_number }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>العنوان</label>
+                    <input type="text" class="form-control" value="{{ order.supplier.address }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>رقم الحساب البنكي</label>
+                    <input type="text" class="form-control" value="{{ order.supplier.bank_account }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>الاجمالي</label>
+                    <input type="text" class="form-control" value="{{ order.total_price }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>تاريخ الطلب</label>
+                    <input type="text" class="form-control" value="{{ order.created_at }}" readonly>
+                </div>
+            </div>
+        </div>
+    
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <h4 class="mt-4">معلومات المنتجات</h4>
+            <hr>
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>اسم المنتج</th>
+                        <th>السعر</th>
+                        <th>الكمية</th>
+                        <th>مده الصلاحية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in order.items.all %}
+                    <tr class="order-item-form">
+                        <td>{{ form.product_name }}</td>
+                        <td>{{ form.price }}</td>
+                        <td>{{ form.quantity }}</td>
+                        <td>{{ form.expiry_period }} يوم </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="row">
+                <div class="text-left col-4">
+                    <a href="{% url dashboard_url %}" class="btn add">رجوع</a>    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

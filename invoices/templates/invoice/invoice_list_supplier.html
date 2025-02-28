@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="table-responsive card mt-4 p-4 shadow-lg">
+    <div class="row">
+        <h4 class="col-6">فواتيري</h4>
+    </div>
+    <hr>
+    {% if invoices %}
+    <table class="table table-striped text-center align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>رقم الفاتوره</th>
+                <th>التاريخ</th>
+                <th>الإجمالي</th>
+                <th>المدفوع</th>
+                <th>المتبقي</th>
+                <th>الحاله</th>
+                <th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody id="formset-container">
+            {% for invoice in invoices %}
+            <tr class="order-item-form">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ invoice.invoice_date }}</td>
+                <td>{{ invoice.total_amount}} ريال</td>
+                <td>{{ invoice.paid_amount}} ريال</td>
+                <td>{{ invoice.remaining_amount}} ريال</td>
+                <td><span class="badge bg-warning text-dark">{{ invoice.status }}</span></td>
+                <td>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> عرض
+                                </a>                                        
+                            </li>
+                        </ul>
+                    </div>                                                                              
+                </td> 
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">رجوع</a>
+    </div>
+    {% else %}
+    <p class="text-muted">لا يوحد فواتير بعد.</p>
+    {% endif %}
+</div>
+{% endblock %}

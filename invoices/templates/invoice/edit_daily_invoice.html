@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="card p-4 shadow-lg">
+        <h3 class="text-center">  إضافة مرتجع للفاتوره : {{ invoice.invoice_number }}</h3>
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <h4>المنتجات الأساسية</h4>
+            <hr>
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>اسم المنتج</th>
+                        <th>الكمية</th>
+                        <th>السعر للوحدة</th>
+                        <th>إجمالي السعر</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in original_items %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.unit_price }}</td>
+                        <td>{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <h4> منتجات منتهية الصلاحية</h4>
+            <hr>
+            <form method="post">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                <table class="table table-striped text-center align-middle" id="expired-products-table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>اسم المنتج</th>
+                            <th>السعر للوحدة</th>
+                            <th>الكمية</th>
+                            <th>حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form in formset %}
+                        <tr class="form-row">
+                            <td>
+                                {# نعرض القائمة المخصصة #}
+                                <select name="{{ form.product_name.html_name }}" class="form-control product-select">
+                                    <option value="">اختر المنتج</option>
+                                    {% for order_item in form.product_name.field.queryset %}
+                                        <option value="{{ order_item.id }}" data-price="{{ order_item.price }}">
+                                            {{ order_item.product_name|default:"اسم غير متوفر" }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" name="{{ form.unit_price.html_name }}" class="form-control unit-price" readonly>
+                            </td>
+                            <td>{{ form.expired_quantity }}</td>
+                            <td>{{ form.DELETE }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button type="button" class="btn add" id="add-more">إضافة مرتجع </button>
+                <button type="submit" class="btn add">حفظ التعديلات</button>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-danger">إلغاء</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // زر إضافة منتج جديد
+    document.getElementById('add-more').addEventListener('click', function() {
+        var formIdx = document.querySelectorAll('.form-row').length;
+        var formClone = document.querySelector('.form-row').cloneNode(true);
+        formClone.innerHTML = formClone.innerHTML.replace(/-\d+-/g, '-' + formIdx + '-');
+        formClone.innerHTML = formClone.innerHTML.replace(/id_form-\d+-/g, 'id_form-' + formIdx + '-');
+        document.querySelector('#expired-products-table tbody').appendChild(formClone);
+    });
+
+    // تحديث السعر عند اختيار منتج من القائمة
+    document.querySelectorAll(".product-select").forEach(function (select) {
+        select.addEventListener("change", function () {
+            var selectedOption = this.options[this.selectedIndex];
+            var price = selectedOption.getAttribute("data-price") || "";
+            var unitPriceInput = this.closest("tr").querySelector(".unit-price");
+            unitPriceInput.value = price;
+        });
+    });
+});
+</script>
+{% endblock %}

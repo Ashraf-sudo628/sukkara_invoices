@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+<style>
+    .test{
+        font-weight: bold !important; 
+    }
+</style>
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="card shadow-lg p-4 rounded">
+        <h2 class="text-center">تعديل بيانات المورد</h2>
+        <hr>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: bold ">{{ form.company_name.label }}</label>
+                {{ form.company_name }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: bold ">{{ form.email.label }}</label>
+                {{ form.email }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: bold ">{{ form.bank_account.label }}</label>
+                {{ form.bank_account }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: bold ">{{ form.phone_number.label }}</label>
+                {{ form.phone_number }}
+            </div>
+            <div class="mb-3">
+                <label class="form-label" style="font-weight: bold ">{{ form.address.label }}</label>
+                {{ form.address }}
+            </div>
+
+            <div class="text-center">
+                
+                <button type="submit" class="btn add">حفظ التعديلات</button>
+                
+                {% if request.user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-danger">إلغاء</a>
+                {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-danger">إلغاء</a>
+                {% endif %}
+                    
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

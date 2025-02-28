@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block register %}
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg p-4 rounded" style="width: 400px;">
+        <h3 class="text-center mb-3">تسجيل المورد</h3>
+        
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn add w-100">تسجيل</button>
+        </form>
+
+        <p class="text-center mt-3">
+            لديك حساب بالفعل؟ <a href="{% url 'login' %}" class="text-decoration-none">تسجيل الدخول</a>
+        </p>
+    </div>
+</div>
+
+<!-- Bootstrap JavaScript -->
+{% endblock %}
+
+
+

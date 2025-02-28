@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="table-responsive card mt-4 p-4 shadow-lg">
+    <div class="row">
+        <h4 class="">قائمة المنتجات</h4>
+    </div>
+    <hr>
+    {% if products %}
+    <table class="table table-striped text-center align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>إسم الاسرة </th>
+                <th>إسم المنتج </th>
+                <th>سعر البيع</th>
+                <th>سعر الشراء</th>
+                <th>مدة الصلاحية</th>
+            </tr>
+        </thead>
+        <tbody id="formset-container">
+            {% for product in products %}
+            <tr class="order-item-form">
+                <td>{{ forloop.counter }}</td>
+                <td>{{ product.supplier.company_name }}</td>
+                <td>{{ product.name }}</td>
+                <td>{{ product.selling_price }} ريال</td>
+                <td>{{ product.purchase_price }} ريال</td>
+                <td>{{ product.expiry_period }} ريال</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">رجوع</a>
+    </div>
+    {% else %}
+    <p class="text-muted">لا يوجد أي طلبات بعد.</p>
+    {% endif %}
+</div>
+{% endblock %}

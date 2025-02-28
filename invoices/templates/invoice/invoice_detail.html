@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="card p-4 shadow-lg">
+        <div class="card p-4 shadow-lg">
+            <h4 class="">تفاصيل الفاتوره</h4>
+            <hr>
+            <div class="row">
+                <div class="col-md-6 mt-2">
+                    <label>اسم الأسره</label>
+                    <input type="text" class="form-control" value="{{ invoice.supplier.company_name }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>رقم الفاتوره</label>
+                    <input type="text" class="form-control" value="{{ invoice.id }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>تاريخ الفاتوره</label>
+                    <input type="text" class="form-control" value="{{ invoice.invoice_date }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>إجمالي الفاتوره</label>
+                    <input type="text" class="form-control" value="{{ invoice.total_amount }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>الرصيد السابق</label>
+                    <input type="text" class="form-control" value="{{ invoice.previous_balance }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>الرصيد الحالي</label>
+                    <input type="text" class="form-control" value="{{ invoice.supplier.current_balance }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>المدفوع</label>
+                    <input type="text" class="form-control" value="{{ invoice.paid_amount }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>المتبقي</label>
+                    <input type="text" class="form-control" value="{{ invoice.remaining_amount }}" readonly>
+                </div>
+            </div>
+            <!-- زر يفتح المودال -->
+            
+            {% if request.user.is_staff %}
+                {% if invoice.status != 'مدفوعة' or invoice.remaining_amount != 0 %}
+                    <div class="mt-4">
+                        <button type="button" class="btn add" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                            <i class="fas fa-money-bill-wave"></i> إضافة دفعة
+                        </button>
+                    </div>
+                {%endif%}
+            {% endif %}
+                
+ 
+            <!-- نافذة منبثقة لإضافة دفعة -->
+            <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="paymentModalLabel">إضافة دفعة جديدة</h5>
+                            
+                        </div>
+                        <div class="modal-body">
+                            <form method="post" action="{% url 'add_payment' invoice.id %}">
+                                {% csrf_token %}
+                                {{ form.as_p }}
+                                <button type="submit" class="btn add ">إرسال الدفعة</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div class="table-responsive card mt-4 p-4 shadow-lg">
+                <h4 class="">تفاصيل المنتجات</h4>
+                <hr>
+                <table class="table table-striped text-center align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>اسم المنتج</th>
+                            <th>الكمية</th>
+                            <th>الرجيع</th>
+                            <th>سعر الوحده</th>
+                            <th>السعر الاجمالي </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form in invoice.items.all %}
+                        <tr class="order-item-form">
+                            <td>{{ form.product_name }}</td>
+                            <td>{{ form.quantity }}</td>
+                            <td>{{ form.expired_quantity }}</td>
+                            <td>{{ form.unit_price }}</td>
+                            <td>
+                                
+                                {% if form.expired_quantity and form.expired_quantity != 0 %}
+                                    {{calculated_total_price }}
+                                {% else %}
+                                    {{ form.total_price}}
+                                {% endif %}
+
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="row">
+                    <div class="text-left col-4">
+                        <a href="{% url dashboard_url %}" class="btn add">رجوع</a>    
+                    </div>
+                </div>
+            </div>
+    </div>
+
+</div>
+
+
+{% endblock %}

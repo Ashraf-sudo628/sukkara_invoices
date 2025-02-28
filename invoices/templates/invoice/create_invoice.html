@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>إنشاء فاتورة جديدة</h2>
+<form method="post">
+    {% csrf_token %}
+    <h3>بيانات الفاتورة</h3>
+    {{ invoice_form.as_p }}
+
+    <h3>المنتجات</h3>
+    {{ item_form.as_p }}
+
+    <button type="submit">حفظ الفاتورة</button>
+</form>
+{% endblock %}

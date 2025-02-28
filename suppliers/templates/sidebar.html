@@ -1,0 +1,124 @@
+
+{% load static %}
+
+<style>
+        /* تنسيق الشريط الجانبي */
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        background: linear-gradient(to bottom, #ffe8db, #ffe8db);
+        position: fixed;
+        right: 0;
+        top: 0;
+        padding-top: 20px;
+        transition: width 0.3s ease-in-out;
+        overflow-x: hidden;
+        z-index: 1000;
+    }
+
+    /* تنسيق العنوان */
+    .sidebar-header {
+        text-align: center;
+        padding-bottom: 15px;
+    }
+
+    .sidebar-header .logo {
+        width: 120px;
+        height: auto;
+    }
+
+    /* تنسيق القائمة الجانبية */
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar-menu li {
+        padding: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar-menu li a {
+        color: #a58371;
+        text-decoration: none;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-menu li a:hover {
+        background: rgba(255, 255, 255, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    /* محتوى الصفحة ليكون بمحاذاة القائمة */
+    .content {
+        flex-grow: 1;
+        margin-right: 250px;
+        padding: 20px;
+        transition: margin-right 0.3s ease-in-out;
+    }
+
+    /* تحسين الشكل للأجهزة الصغيرة */
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 0;
+            overflow: hidden;
+        }
+
+        .content {
+            margin-right: 0;
+        }
+    }
+
+</style>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        {% if request.user.is_staff %}
+            <a href="{% url 'admin_dashboard' %}">
+                <img src="{% static 'images/logo1.jpg' %}" alt="Logo" class="logo">
+            </a>
+        {% else %}
+            <a href="{% url 'dashboard' %}">
+                <img src="{% static 'images/logo1.jpg' %}" alt="Logo" class="logo">
+            </a>
+        {% endif %}
+    </div>
+    <ul class="sidebar-menu">
+        <li>
+            
+            {% if request.user.is_staff %}
+                <a href="{% url 'supplier-list' %}"><i class="fa fa-user"></i>قائمة الموردين</a> 
+            {% else %}
+                <a href="{% url 'product-list-supplier' %}"><i class="fa fa-shopping-cart"></i> منتجاتي</a>
+            {% endif %}
+                
+            
+        </li>
+        
+        <li>
+            
+            {% if request.user.is_staff %}
+                <a href="{% url 'order-list' %}"><i class="fa fa-shopping-cart"></i>قائمة الطلبات</a>
+            {% else %}
+                <a href="{% url 'order-list-supplier' %}"><i class="fa fa-shopping-cart"></i> طلباتي</a>
+            {% endif %}
+                
+            
+        </li>
+        <li>
+            {% if request.user.is_staff %}
+                <a href="{% url 'invoice-list' %}"><i class="fa fa-file-invoice"></i> قائمة الفواتير</a>
+            {% else %}
+                <a href="{% url 'invoice-list-supplier' %}"><i class="fa fa-file-invoice"></i> فواتيري</a>
+            {%endif%}
+                
+        </li>
+        <li><a href="{% url 'edit_supplier_profile'%}"><i class="fa fa-user"></i> الملف الشخصي</a></li>
+        <li><a href="{% url 'logout'%}"><i class="fa fa-sign-out-alt"></i> تسجيل الخروج</a></li>
+    </ul>
+</div>
+

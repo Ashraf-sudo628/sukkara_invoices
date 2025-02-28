@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+{% block content %}
+{% comment %} <div class="container-fluid mt-5">
+    <div class="card shadow-lg p-4">
+    <h2 class="text-center">إنشاء طلب جديد لأسرة {{ supplier.company_name }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="card p-4 shadow-lg">
+            <h4>معلومات المورد</h4>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <label>اسم المورد:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.company_name }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>رقم الهاتف:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.phone_number }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>العنوان:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.address }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>رقم الحساب البنكي:</label>
+                    <input type="text" class="form-control" value="{{ request.user.supplier.bank_account }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <h4>معلومات المنتجات</h4>
+            <hr>
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>اسم المنتج</th>
+                        <th>السعر</th>
+                        <th>الكمية</th>
+                        <th>مدة الصلاحية</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-container">
+                    {{ formset.management_form }}
+                    {% for form in formset %}
+                    <tr class="order-item-form">
+                        <td>    
+                            <label for="id_product">اختر المنتج:</label>
+                            <select id="id_product" name="product">
+                                <option value="">اختر المنتج</option>
+                                {% for product in supplier.products.all %}
+                                    <option value="{{ product.id }}" 
+                                            data-sale_price="{{ product.selling_price }}" 
+                                            data-expiry_date="{{ product.expiry_period}}">
+                                        {{ product.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td id="sale_price">{{ form.price }}</td>
+                        <td id="expiry_date">{{ form.expiry_period }}</td>
+                        <td >{{ form.quantity }}</td>
+                        <td>{{ form.DELETE }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="card p-4 shadow-lg">
+                    {{ form.as_p }}
+                </div>
+            </form>
+            <div>
+                <button type="button" class="btn add mt-4" id="add-product">إضافة منتج</button>
+                <button type="submit" class="btn add mt-4">
+                    {% if order %}حفظ التعديلات{% else %}إرسال الطلب{% endif %}
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn btn-danger mt-4">إلغاء</a>
+            </div>
+        </div>
+    </form>
+    </div>
+</div>
+
+<!-- قالب صف فارغ لإضافة منتجات ديناميكيًا -->
+<table id="empty-form" style="display: none;">
+    <tr class="order-item-form">
+        <td>{{ formset.empty_form.product_name }}</td>
+        <td>{{ formset.empty_form.price }}</td>
+        <td>{{ formset.empty_form.quantity }}</td>
+        <td>{{ formset.empty_form.expiry_date }}</td>
+        <td><button type="button" class="btn btn-danger remove-product">حذف</button></td>
+    </tr>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const formsetContainer = document.getElementById("formset-container");
+        const addProductBtn = document.getElementById("add-product");
+        const emptyForm = document.getElementById("empty-form").innerHTML;
+        let totalForms = document.getElementById("id_form-TOTAL_FORMS");
+        let grandTotalElement = document.getElementById("grand-total");
+
+        function updateTotalForms() {
+            totalForms.setAttribute("value", formsetContainer.children.length);
+        }
+
+        function calculateTotal(row) {
+            let priceInput = row.querySelector(".price");
+            let quantityInput = row.querySelector(".quantity");
+            let totalInput = row.querySelector(".total-price");
+
+            let price = parseFloat(priceInput.value) || 0;
+            let quantity = parseInt(quantityInput.value) || 0;
+            let total = price * quantity;
+            totalInput.value = total.toFixed(2);
+
+            updateGrandTotal();
+        }
+
+        function updateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll(".total-price").forEach(input => {
+                grandTotal += parseFloat(input.value) || 0;
+            });
+            grandTotalElement.textContent = grandTotal.toFixed(2);
+        }
+
+        addProductBtn.addEventListener("click", function () {
+            const newRow = document.createElement("tr");
+            let formIndex = formsetContainer.children.length; // الحصول على عدد الصفوف الحالية
+            newRow.innerHTML = emptyForm.replace(/__prefix__/g, formIndex);
+            formsetContainer.appendChild(newRow);
+            updateTotalForms();
+        
+            // اجعل الحقول الجديدة تستجيب لحساب الإجمالي
+            newRow.querySelector(".price").addEventListener("input", function () {
+                calculateTotal(newRow);
+            });
+            newRow.querySelector(".quantity").addEventListener("input", function () {
+                calculateTotal(newRow);
+            });
+        });
+
+        formsetContainer.addEventListener("click", function (event) {
+            if (event.target.classList.contains("remove-product")) {
+                event.target.closest("tr").remove();
+                updateTotalForms();
+                updateGrandTotal();
+            }
+        });
+
+        formsetContainer.addEventListener("input", function (event) {
+            let row = event.target.closest(".order-item-form");
+            if (row) {
+                calculateTotal(row);
+            }
+        });
+
+        // حساب الإجمالي للمنتجات الحالية عند تحميل الصفحة
+        document.querySelectorAll(".order-item-form").forEach(row => {
+            row.querySelector(".price").addEventListener("input", function () {
+                calculateTotal(row);
+            });
+            row.querySelector(".quantity").addEventListener("input", function () {
+                calculateTotal(row);
+            });
+        });
+    });
+</script> 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const productSelect = document.getElementById("id_product");
+        const salePriceSpan = document.getElementById("sale_price");
+        const expiryDateSpan = document.getElementById("expiry_date");
+    
+        productSelect.addEventListener("change", function() {
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const salePrice = selectedOption.getAttribute("data-sale_price") || "-";
+            const expiryDate = selectedOption.getAttribute("data-expiry_date") || "-";
+    
+            salePriceSpan.textContent = salePrice + " جنيه";
+            expiryDateSpan.textContent = expiryDate;
+        });
+    });
+    </script> {% endcomment %}
+<div class="container-fluid mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center">إنشاء طلب جديد لمورد: {{ supplier.company_name }}</h2>
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- معلومات المورد -->
+         
+            <div class="card p-4 shadow-lg">
+                <h4>معلومات المورد</h4>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>اسم المورد:</label>
+                        <input type="text" class="form-control" value="{{ supplier.company_name }}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label>رقم الهاتف:</label>
+                        <input type="text" class="form-control" value="{{ supplier.phone_number }}" readonly>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label>العنوان:</label>
+                        <input type="text" class="form-control" value="{{ supplier.address }}" readonly>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label>رقم الحساب البنكي:</label>
+                        <input type="text" class="form-control" value="{{ supplier.bank_account }}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- جدول المنتجات -->
+            <div class="table-responsive card mt-4 p-4 shadow-lg">
+                <h4>معلومات المنتجات</h4>
+                <hr>
+                <table class="table table-striped text-center align-middle " id="add-products-table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>اسم المنتج</th>
+                            <th>السعر</th>
+                            <th>مدة الصلاحية</th>
+                            <th>الكمية</th>
+                            <th>حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody id="formset-container">
+                        {{ formset.management_form }}
+                        {% for form in formset %}
+                        <tr class="form-row">
+                            <td>
+                                {# نعرض القائمة المخصصة #}
+                                <select name="{{ form.product_name.html_name }}" class="form-control product-select">
+                                    <option value="">اختر المنتج</option>
+                                    {% for product in supplier.products.all %}
+                                        <option value="{{ product.id }}" 
+                                                data-sale_price="{{ product.selling_price }}" 
+                                                data-expiry_date="{{ product.expiry_period }}">
+                                            {{product.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" name="{{ form.price.html_name }}" class="form-control price" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="{{ form.expiry_period.html_name }}" class="form-control expiry-period" readonly>
+                            </td>
+                            <td>{{ form.quantity }}</td>
+                            <td>{{ form.DELETE }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <button type="button" class="btn add mt-4" id="add-more">إضافة منتج </button>
+                
+                {% if request.user.is_staff %}
+                    <button type="submit" class="btn add mt-4">
+                        {% if order %}حفظ التعديلات{% else %}إرسال الطلب{% endif %}
+                    </button>
+                    <a href="{% url 'supplier_detail' supplier.id %}" class="btn btn-danger mt-4">إلغاء</a>
+                {% else %}
+                    <button type="submit" class="btn add mt-4">
+                        {% if order %}حفظ التعديلات{% else %}إرسال الطلب{% endif %}
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-danger mt-4">إلغاء</a>
+                {% endif %}
+                    
+
+            </div>
+        </form>
+        
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var formsetContainer = document.querySelector("#add-products-table tbody");
+        var totalFormsInput = document.querySelector("#id_form-TOTAL_FORMS"); // عدد النماذج الحالي
+    
+        // العثور على النموذج الفارغ (السطر الأول في الجدول)
+        var emptyForm = document.querySelector(".form-row");
+        
+        if (!emptyForm) {
+            console.error("⚠️ لم يتم العثور على .form-row داخل الجدول! تأكد من أن لديك صف واحد على الأقل.");
+            return;
+        }
+    
+        document.getElementById('add-more').addEventListener('click', function() {
+            var formIdx = parseInt(totalFormsInput.value); // احصل على العدد الحالي للنماذج
+            var formClone = emptyForm.cloneNode(true); // استنساخ الصف الأول
+            
+            // تحديث أسماء الحقول لجعلها متسلسلة
+            formClone.innerHTML = formClone.innerHTML.replace(/-\d+-/g, '-' + formIdx + '-');
+            formClone.innerHTML = formClone.innerHTML.replace(/id_form-\d+/g, 'id_form-' + formIdx);
+    
+            // إعادة تعيين القيم داخل الصف الجديد
+            formClone.querySelector(".product-select").value = "";
+            formClone.querySelector(".price").value = "";
+            formClone.querySelector(".expiry-period").value = "";
+    
+            // إضافة الصف الجديد إلى الجدول
+            formsetContainer.appendChild(formClone);
+    
+            // تحديث عدد النماذج في الفورم
+            totalFormsInput.value = formIdx + 1;
+        });
+    
+        // تحديث السعر ومدة الصلاحية عند اختيار المنتج (Event Delegation)
+        formsetContainer.addEventListener('change', function(event) {
+            if (event.target.classList.contains('product-select')) {
+                var selectedOption = event.target.options[event.target.selectedIndex];
+                var price = selectedOption.getAttribute("data-sale_price") || "";
+                var expiry_period = selectedOption.getAttribute("data-expiry_date") || "";
+    
+                var row = event.target.closest("tr");
+                row.querySelector(".price").value = price;
+                row.querySelector(".expiry-period").value = expiry_period;
+            }
+        });
+    
+        // حذف الصف عند الضغط على زر "حذف"
+        formsetContainer.addEventListener("click", function(event) {
+            if (event.target.classList.contains("remove-product")) {
+                event.target.closest("tr").remove();
+                updateFormIndexes(); // تحديث الفهارس بعد الحذف
+            }
+        });
+    
+        // تحديث الفهارس عند حذف عنصر
+        function updateFormIndexes() {
+            var forms = document.querySelectorAll('.form-row');
+            forms.forEach(function(row, index) {
+                row.innerHTML = row.innerHTML.replace(/-\d+-/g, '-' + index + '-');
+                row.innerHTML = row.innerHTML.replace(/id_form-\d+/g, 'id_form-' + index);
+            });
+    
+            // تحديث عدد النماذج
+            totalFormsInput.value = forms.length;
+        }
+    });
+    
+</script>
+{% endblock %}

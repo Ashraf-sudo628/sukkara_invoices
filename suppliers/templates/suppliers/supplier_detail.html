@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="card p-4 shadow-lg">
+        <div class="card p-4 shadow-lg">
+            <ol class="breadcrumb breadcrumb-no-gutter">
+                <li class="breadcrumb-item"><h4>
+                    <a class="breadcrumb-link" style="text-decoration: none;" href="{% url 'supplier-list' %}"> قائمة الموردين / </a></h4></li>
+                <h4 class=""> معلومات المورد </h4>
+                
+            </ol>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <label>اسم الأسره</label>
+                    <input type="text" class="form-control" value="{{ supplier.company_name }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>رقم الهاتف</label>
+                    <input type="text" class="form-control" value="{{ supplier.phone_number }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>رقم الحساب البنكي</label>
+                    <input type="text" class="form-control" value="{{ supplier.bank_account }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>الرصيد الحالي</label>
+                    <input type="text" class="form-control" value="{{ supplier.current_balance }}" readonly>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <label>البريد الالكتروني</label>
+                    <input type="text" class="form-control" value="{{ supplier.email }}" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label>العنوان</label>
+                    <input type="text" class="form-control" value="{{ supplier.address }}" readonly>
+                </div>
+            </div>
+        </div>
+    
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <div class="row">
+                <h4 class=""> منتجات المورد</h4>
+            </div>
+            <hr>
+            {% if products %}
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>إسم الاسرة </th>
+                        <th>إسم المنتج </th>
+                        <th>سعر البيع</th>
+                        <th>سعر الشراء</th>
+                        <th>مدة الصلاحية</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-container">
+                    {% for product in products %}
+                    <tr class="order-item-form">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ product.supplier.company_name }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.selling_price }} ريال</td>
+                        <td>{{ product.purchase_price }} ريال</td>
+                        <td>{{ product.expiry_period }} ريال</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">لا يوجد أي منتجات بعد.</p>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <div class="row">
+                <h4 class="">فواتير المورد </h4>
+            </div>
+            <hr>
+            {% if invoices %}
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>رقم الفاتوره</th>
+                        <th> اسم الأسره</th>
+                        <th>التاريخ</th>
+                        <th>الإجمالي</th>
+                        <th>المدفوع</th>
+                        <th>المتبقي</th>
+                        <th>الحاله</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-container">
+                    {% for invoice in invoices %}
+                    <tr class="order-item-form">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ invoice.supplier.company_name }}</td>
+                        <td>{{ invoice.invoice_date }}</td>
+                        <td>{{ invoice.total_amount}} جنيه</td>
+                        <td>{{ invoice.paid_amount}} جنيه</td>
+                        <td>{{ invoice.remaining_amount}} جنيه</td>
+                        <td>{{ invoice.status }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li class="mb-2">
+                                        <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> عرض
+                                        </a>                                         
+                                    </li>
+                                    {% if invoice.status != 'مدفوعة' %}
+                                        <li class="mb-2">
+                                            <a href="{% url 'edit_daily_invoice' invoice.id %}" class="btn btn-info btn-sm">
+                                                <i class="fas fa-pencil-alt me-1"></i> إضافة مرتجع
+                                            </a>  
+                                        </li>
+                                    {% endif %}
+
+                                </ul>
+                            </div>                                                                              
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">لا يوحد فواتير بعد.</p>
+            {% endif %}
+        </div>
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <ol class="breadcrumb breadcrumb-no-gutter">
+                <h4 class=""> طلبات المورد / </h4>
+                <li class="breadcrumb-item"><h4>
+                    <a class="breadcrumb-link" style="text-decoration: none;" href="{% url 'create_order' supplier.id %}"> إضافة طلب </a></h4></li>
+                
+            </ol>
+            <hr>
+            {% if orders %}
+            <table class="table table-striped text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>رقم الطلب</th>
+                        <th>إسم الاسرة </th>
+                        <th>التاريخ</th>
+                        <th>المبلغ الإجمالي</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-container">
+                    {% for order in orders %}
+                    <tr class="order-item-form">
+                        <td>{{forloop.counter }}</td>
+                        <td>{{ order.supplier.company_name }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td>{{ order.total_price }} جنيه</td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="{% url 'order_detail' order.id %}" class="btn btn-info btn-sm">
+                                            <i class="bi bi-eye"></i> عرض
+                                        </a>                           
+                                    </li>
+                                </ul>
+                            </div>                                                                               
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">لا يوجد أي طلبات بعد.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
