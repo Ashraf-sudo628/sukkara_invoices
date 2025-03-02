@@ -70,10 +70,10 @@
                 <thead class="table-dark">
                     <tr>
                         <th>رقم الفاتوره</th>
-                        <th>التاريخ</th>
+                        {% comment %} <th>التاريخ</th> {% endcomment %}
                         <th>الإجمالي</th>
                         <th>المدفوع</th>
-                        <th>المتبقي</th>
+                        {% comment %} <th>المتبقي</th> {% endcomment %}
                         <th>الحاله</th>
                         <th>إجراء</th>
                     </tr>
@@ -82,10 +82,10 @@
                     {% for invoice in invoices %}
                     <tr class="order-item-form">
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ invoice.invoice_date }}</td>
+                        {% comment %} <td>{{ invoice.invoice_date }}</td> {% endcomment %}
                         <td>{{ invoice.total_amount}} ريال</td>
                         <td>{{ invoice.paid_amount}} ريال</td>
-                        <td>{{ invoice.remaining_amount}} ريال</td>
+                        {% comment %} <td>{{ invoice.remaining_amount}} ريال</td> {% endcomment %}
                         <td><span class="badge bg-warning text-dark">{{ invoice.status }}</span></td>
                         <td>
                             <div class="btn-group">

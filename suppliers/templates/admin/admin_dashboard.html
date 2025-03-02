@@ -1,7 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
+<style>
+    @media (max-width: 768px) {
+        .card {
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+    }
+    
+</style>
+<div class="container-fluid mt-5">
     <div class="card shadow-lg p-4">
         <h2 class="text-center">لوحة التحكم</h2>
         
@@ -38,10 +47,10 @@
                     <tr>
                         <th>رقم الفاتوره</th>
                         <th> اسم الأسره</th>
-                        <th>التاريخ</th>
+                        {% comment %} <th>التاريخ</th> {% endcomment %}
                         <th>الإجمالي</th>
                         <th>المدفوع</th>
-                        <th>المتبقي</th>
+                        {% comment %} <th>المتبقي</th>  {% endcomment %}
                         <th>الحاله</th>
                         <th>إجراء</th>
                     </tr>
@@ -51,10 +60,10 @@
                     <tr class="order-item-form">
                         <td>{{ forloop.counter }}</td>
                         <td>{{ invoice.supplier.company_name }}</td>
-                        <td>{{ invoice.invoice_date }}</td>
+                        {% comment %} <td>{{ invoice.invoice_date }}</td> {% endcomment %}
                         <td>{{ invoice.total_amount}} ريال</td>
                         <td>{{ invoice.paid_amount}} ريال</td>
-                        <td>{{ invoice.remaining_amount}} ريال</td>
+                        {% comment %} <td>{{ invoice.remaining_amount}} ريال</td> {% endcomment %}
                         <td>{{ invoice.status }}</td>
                         <td>
                             <div class="btn-group">
@@ -97,7 +106,7 @@
                     <tr>
                         <th>رقم الطلب</th>
                         <th>إسم الاسرة </th>
-                        <th>التاريخ</th>
+                        {% comment %} <th>التاريخ</th> {% endcomment %}
                         <th>المبلغ الإجمالي</th>
                         <th>إجراء</th>
                     </tr>
@@ -107,7 +116,7 @@
                     <tr class="order-item-form">
                         <td>{{forloop.counter }}</td>
                         <td>{{ order.supplier.company_name }}</td>
-                        <td>{{ order.created_at }}</td>
+                        {% comment %} <td>{{ order.created_at }}</td> {% endcomment %}
                         <td>{{ order.total_price }} ريال</td>
                         <td>
                             <div class="btn-group">

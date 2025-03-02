@@ -13,8 +13,8 @@
                 <th>رقم الفاتوره</th>
                 <th>التاريخ</th>
                 <th>الإجمالي</th>
-                <th>المدفوع</th>
-                <th>المتبقي</th>
+                {% comment %} <th>المدفوع</th>
+                <th>المتبقي</th> {% endcomment %}
                 <th>الحاله</th>
                 <th>إجراء</th>
             </tr>
@@ -25,8 +25,8 @@
                 <td>{{ forloop.counter }}</td>
                 <td>{{ invoice.invoice_date }}</td>
                 <td>{{ invoice.total_amount}} ريال</td>
-                <td>{{ invoice.paid_amount}} ريال</td>
-                <td>{{ invoice.remaining_amount}} ريال</td>
+                {% comment %} <td>{{ invoice.paid_amount}} ريال</td>
+                <td>{{ invoice.remaining_amount}} ريال</td> {% endcomment %}
                 <td><span class="badge bg-warning text-dark">{{ invoice.status }}</span></td>
                 <td>
                     <div class="btn-group">

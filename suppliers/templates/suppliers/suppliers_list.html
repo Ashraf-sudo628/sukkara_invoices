@@ -11,7 +11,6 @@
             <tr>
                 <th>#</th>
                 <th>إسم الاسرة </th>
-                <th> رقم الهاتف </th>
                 <th>الرصيد الحالي</th>
                 <th>العنوان</th>
                 <th>اضافة طلب</th>
@@ -26,11 +25,10 @@
                         {{ supplier.company_name }}
                     </a>
                     </td>
-                <td>{{ supplier.phone_number }}</td>
                 <td>{{ supplier.current_balance }}</td>
                 <td>{{ supplier.address }} </td>
                 <td>
-                    <a href="{% url 'create_order' supplier.id  %}" class="btn btn-secondary">اضافة طلب</a>
+                    <a href="{% url 'create_order' supplier.id  %}" class="btn btn-secondary">اضف</a>
                 </td>
             </tr>
             {% endfor %}

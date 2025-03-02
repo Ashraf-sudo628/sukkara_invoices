@@ -72,6 +72,40 @@
             border-radius: 5px;
             color: black;
         }
+        /* تكبير الحقول داخل الجدول */
+        #add-products-table select,
+        #add-products-table input {
+            height: 50px; /* زيادة ارتفاع الحقول */
+            font-size: 18px; /* تكبير حجم النص */
+            padding: 10px; /* إضافة مسافة داخل الحقل */
+            width: 100%; /* جعل الحقول تمتد بكامل عرض الخلية */
+        }
+
+        /* تكبير زر "إضافة منتج" */
+        #add-more {
+            font-size: 18px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            background-color: #8B5E3C; /* لون بني غامق لجعله أكثر وضوحًا */
+            color: white;
+            border: none;
+        }
+
+        /* تكبير زر "إرسال الطلب" */
+        .add {
+            font-size: 18px;
+            padding: 12px 20px;
+            border-radius: 8px;
+        }
+
+        /* تحسين الجدول في الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            #add-products-table th, #add-products-table td {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
+
     </style>
 
 </head>

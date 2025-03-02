@@ -1,192 +1,6 @@
 {% extends "base.html" %}
+
 {% block content %}
-{% comment %} <div class="container-fluid mt-5">
-    <div class="card shadow-lg p-4">
-    <h2 class="text-center">إنشاء طلب جديد لأسرة {{ supplier.company_name }}</h2>
-    <form method="POST">
-        {% csrf_token %}
-
-        <div class="card p-4 shadow-lg">
-            <h4>معلومات المورد</h4>
-            <hr>
-            <div class="row">
-                <div class="col-md-6">
-                    <label>اسم المورد:</label>
-                    <input type="text" class="form-control" value="{{ request.user.supplier.company_name }}" readonly>
-                </div>
-                <div class="col-md-6">
-                    <label>رقم الهاتف:</label>
-                    <input type="text" class="form-control" value="{{ request.user.supplier.phone_number }}" readonly>
-                </div>
-                <div class="col-md-6 mt-2">
-                    <label>العنوان:</label>
-                    <input type="text" class="form-control" value="{{ request.user.supplier.address }}" readonly>
-                </div>
-                <div class="col-md-6 mt-2">
-                    <label>رقم الحساب البنكي:</label>
-                    <input type="text" class="form-control" value="{{ request.user.supplier.bank_account }}" readonly>
-                </div>
-            </div>
-        </div>
-
-        <div class="table-responsive card mt-4 p-4 shadow-lg">
-            <h4>معلومات المنتجات</h4>
-            <hr>
-            <table class="table table-striped text-center align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>اسم المنتج</th>
-                        <th>السعر</th>
-                        <th>الكمية</th>
-                        <th>مدة الصلاحية</th>
-                        <th>إجراء</th>
-                    </tr>
-                </thead>
-                <tbody id="formset-container">
-                    {{ formset.management_form }}
-                    {% for form in formset %}
-                    <tr class="order-item-form">
-                        <td>    
-                            <label for="id_product">اختر المنتج:</label>
-                            <select id="id_product" name="product">
-                                <option value="">اختر المنتج</option>
-                                {% for product in supplier.products.all %}
-                                    <option value="{{ product.id }}" 
-                                            data-sale_price="{{ product.selling_price }}" 
-                                            data-expiry_date="{{ product.expiry_period}}">
-                                        {{ product.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </td>
-                        <td id="sale_price">{{ form.price }}</td>
-                        <td id="expiry_date">{{ form.expiry_period }}</td>
-                        <td >{{ form.quantity }}</td>
-                        <td>{{ form.DELETE }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <form method="POST">
-                {% csrf_token %}
-                <div class="card p-4 shadow-lg">
-                    {{ form.as_p }}
-                </div>
-            </form>
-            <div>
-                <button type="button" class="btn add mt-4" id="add-product">إضافة منتج</button>
-                <button type="submit" class="btn add mt-4">
-                    {% if order %}حفظ التعديلات{% else %}إرسال الطلب{% endif %}
-                </button>
-                <a href="{% url 'dashboard' %}" class="btn btn-danger mt-4">إلغاء</a>
-            </div>
-        </div>
-    </form>
-    </div>
-</div>
-
-<!-- قالب صف فارغ لإضافة منتجات ديناميكيًا -->
-<table id="empty-form" style="display: none;">
-    <tr class="order-item-form">
-        <td>{{ formset.empty_form.product_name }}</td>
-        <td>{{ formset.empty_form.price }}</td>
-        <td>{{ formset.empty_form.quantity }}</td>
-        <td>{{ formset.empty_form.expiry_date }}</td>
-        <td><button type="button" class="btn btn-danger remove-product">حذف</button></td>
-    </tr>
-</table>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const formsetContainer = document.getElementById("formset-container");
-        const addProductBtn = document.getElementById("add-product");
-        const emptyForm = document.getElementById("empty-form").innerHTML;
-        let totalForms = document.getElementById("id_form-TOTAL_FORMS");
-        let grandTotalElement = document.getElementById("grand-total");
-
-        function updateTotalForms() {
-            totalForms.setAttribute("value", formsetContainer.children.length);
-        }
-
-        function calculateTotal(row) {
-            let priceInput = row.querySelector(".price");
-            let quantityInput = row.querySelector(".quantity");
-            let totalInput = row.querySelector(".total-price");
-
-            let price = parseFloat(priceInput.value) || 0;
-            let quantity = parseInt(quantityInput.value) || 0;
-            let total = price * quantity;
-            totalInput.value = total.toFixed(2);
-
-            updateGrandTotal();
-        }
-
-        function updateGrandTotal() {
-            let grandTotal = 0;
-            document.querySelectorAll(".total-price").forEach(input => {
-                grandTotal += parseFloat(input.value) || 0;
-            });
-            grandTotalElement.textContent = grandTotal.toFixed(2);
-        }
-
-        addProductBtn.addEventListener("click", function () {
-            const newRow = document.createElement("tr");
-            let formIndex = formsetContainer.children.length; // الحصول على عدد الصفوف الحالية
-            newRow.innerHTML = emptyForm.replace(/__prefix__/g, formIndex);
-            formsetContainer.appendChild(newRow);
-            updateTotalForms();
-        
-            // اجعل الحقول الجديدة تستجيب لحساب الإجمالي
-            newRow.querySelector(".price").addEventListener("input", function () {
-                calculateTotal(newRow);
-            });
-            newRow.querySelector(".quantity").addEventListener("input", function () {
-                calculateTotal(newRow);
-            });
-        });
-
-        formsetContainer.addEventListener("click", function (event) {
-            if (event.target.classList.contains("remove-product")) {
-                event.target.closest("tr").remove();
-                updateTotalForms();
-                updateGrandTotal();
-            }
-        });
-
-        formsetContainer.addEventListener("input", function (event) {
-            let row = event.target.closest(".order-item-form");
-            if (row) {
-                calculateTotal(row);
-            }
-        });
-
-        // حساب الإجمالي للمنتجات الحالية عند تحميل الصفحة
-        document.querySelectorAll(".order-item-form").forEach(row => {
-            row.querySelector(".price").addEventListener("input", function () {
-                calculateTotal(row);
-            });
-            row.querySelector(".quantity").addEventListener("input", function () {
-                calculateTotal(row);
-            });
-        });
-    });
-</script> 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const productSelect = document.getElementById("id_product");
-        const salePriceSpan = document.getElementById("sale_price");
-        const expiryDateSpan = document.getElementById("expiry_date");
-    
-        productSelect.addEventListener("change", function() {
-            const selectedOption = productSelect.options[productSelect.selectedIndex];
-            const salePrice = selectedOption.getAttribute("data-sale_price") || "-";
-            const expiryDate = selectedOption.getAttribute("data-expiry_date") || "-";
-    
-            salePriceSpan.textContent = salePrice + " جنيه";
-            expiryDateSpan.textContent = expiryDate;
-        });
-    });
-    </script> {% endcomment %}
 <div class="container-fluid mt-5">
     <div class="card shadow-lg p-4">
         <h2 class="text-center">إنشاء طلب جديد لمورد: {{ supplier.company_name }}</h2>
@@ -352,4 +166,197 @@
     });
     
 </script>
+
+{% comment %} <div class="container-fluid mt-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="text-center">إنشاء طلب جديد لمورد: {{ supplier.company_name }}</h2>
+        {{ formset.management_form }}
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- معلومات المورد -->
+            <div class="card p-4 shadow-lg">
+                <h4>معلومات المورد</h4>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>اسم المورد:</label>
+                        <input type="text" class="form-control" value="{{ supplier.company_name }}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label>رقم الهاتف:</label>
+                        <input type="text" class="form-control" value="{{ supplier.phone_number }}" readonly>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label>العنوان:</label>
+                        <input type="text" class="form-control" value="{{ supplier.address }}" readonly>
+                    </div>
+                    <div class="col-md-6 mt-2">
+                        <label>رقم الحساب البنكي:</label>
+                        <input type="text" class="form-control" value="{{ supplier.bank_account }}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- المنتجات -->
+            <div class="card mt-4 p-4 shadow-lg">
+                <h4>إضافة المنتجات</h4>
+                <hr>
+                <div id="product-container">
+                    <!-- سيتم إضافة المنتجات هنا ديناميكيًا -->
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="button" class="btn btn-primary" id="add-product">إضافة منتج</button>
+                <button type="submit" class="btn btn-success">إرسال الطلب</button>
+                <a href="{% url 'dashboard' %}" class="btn btn-danger">إلغاء</a>
+            </div>
+        </form>
+    </div>
+</div> {% endcomment %}
+{% comment %} <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let productContainer = document.getElementById('product-container');
+        let addProductButton = document.getElementById('add-product');
+    
+        addProductButton.addEventListener('click', function() {
+            let productIndex = document.querySelectorAll('.product-card').length;
+    
+            let productHTML = `
+                <div class="card product-card p-3 mt-3 shadow-sm">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label>اسم المنتج:</label>
+                            <select name="product-${productIndex}-name" class="form-control product-select">
+                                <option value="">اختر المنتج</option>
+                                {% for product in supplier.products.all %}
+                                    <option value="{{ product.id }}" 
+                                            data-sale_price="{{ product.selling_price }}" 
+                                            data-expiry_date="{{ product.expiry_period }}">
+                                        {{ product.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>السعر:</label>
+                            <input type="text" name="product-${productIndex}-price" class="form-control price" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label>مدة الصلاحية:</label>
+                            <input type="text" name="product-${productIndex}-expiry" class="form-control expiry-period" readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label>الكمية:</label>
+                            <input type="number" name="product-${productIndex}-quantity" class="form-control quantity" min="1">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger remove-product">❌</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+    
+            productContainer.insertAdjacentHTML('beforeend', productHTML);
+        });
+    
+        // تحديث السعر ومدة الصلاحية عند اختيار المنتج
+        productContainer.addEventListener('change', function(event) {
+            if (event.target.classList.contains('product-select')) {
+                let selectedOption = event.target.options[event.target.selectedIndex];
+                let row = event.target.closest(".product-card");
+                row.querySelector(".price").value = selectedOption.getAttribute("data-sale_price") || "";
+                row.querySelector(".expiry-period").value = selectedOption.getAttribute("data-expiry_date") || "";
+            }
+        });
+    
+        // حذف المنتج عند الضغط على الزر
+        productContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-product')) {
+                event.target.closest('.product-card').remove();
+            }
+        });
+    });
+</script> {% endcomment %}
+
+{% comment %} <script>
+document.addEventListener('DOMContentLoaded', function() {
+    let productContainer = document.getElementById('product-container');
+    let addProductButton = document.getElementById('add-product');
+    let totalProductsInput = document.getElementById('total-products');
+
+    addProductButton.addEventListener('click', function() {
+        let productIndex = document.querySelectorAll('.product-card').length;
+
+        let productHTML = `
+            <div class="card product-card p-3 mt-3 shadow-sm" data-index="${productIndex}">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>اسم المنتج:</label>
+                        <select name="form-${productIndex}-product_name" class="form-control product-select">
+                            <option value="">اختر المنتج</option>
+                            {% for product in supplier.products.all %}
+                                <option value="{{ product.id }}" 
+                                        data-sale_price="{{ product.selling_price }}" 
+                                        data-expiry_date="{{ product.expiry_period }}">
+                                    {{ product.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>السعر:</label>
+                        <input type="text" name="form-${productIndex}-price" class="form-control price" readonly>
+                    </div>
+                    <div class="col-md-2">
+                        <label>مدة الصلاحية:</label>
+                        <input type="text" name="form-${productIndex}-expiry_period" class="form-control expiry-period" readonly>
+                    </div>
+                    <div class="col-md-2">
+                        <label>الكمية:</label>
+                        <input type="number" name="form-${productIndex}-quantity" class="form-control quantity" min="1">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger remove-product">❌</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        productContainer.insertAdjacentHTML('beforeend', productHTML);
+        totalProductsInput.value = productIndex + 1; // تحديث عدد المنتجات
+    });
+
+    // تحديث السعر ومدة الصلاحية عند اختيار المنتج
+    productContainer.addEventListener('change', function(event) {
+        if (event.target.classList.contains('product-select')) {
+            let selectedOption = event.target.options[event.target.selectedIndex];
+            let row = event.target.closest(".product-card");
+            row.querySelector(".price").value = selectedOption.getAttribute("data-sale_price") || "";
+            row.querySelector(".expiry-period").value = selectedOption.getAttribute("data-expiry_date") || "";
+        }
+    });
+
+    // حذف المنتج عند الضغط على الزر
+    productContainer.addEventListener('click', function(event) {
+        if (event.target.classList.contains('remove-product')) {
+            let productCard = event.target.closest('.product-card');
+            productCard.remove();
+
+            // إعادة ترتيب الفهارس
+            document.querySelectorAll('.product-card').forEach((card, index) => {
+                card.setAttribute("data-index", index);
+                card.querySelector(".product-select").setAttribute("name", `form-${index}-product_name`);
+                card.querySelector(".price").setAttribute("name", `form-${index}-price`);
+                card.querySelector(".expiry-period").setAttribute("name", `form-${index}-expiry_period`);
+                card.querySelector(".quantity").setAttribute("name", `form-${index}-quantity`);
+            });
+
+            totalProductsInput.value = document.querySelectorAll('.product-card').length;
+        }
+    });
+});
+</script> {% endcomment %}
+        
 {% endblock %}

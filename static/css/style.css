@@ -128,3 +128,33 @@ thead {
     border: none;
     padding: 10px 20px;
 }
+
+@media (max-width: 768px) {
+    .card {
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    table th,
+    table td {
+        font-size: 12px;
+        /* تصغير حجم الخط */
+        padding: 5px;
+    }
+    table .btn-group {
+        display: flex;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn-sm {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+    .dropdown-menu {
+        min-width: 100px;
+    }
+}

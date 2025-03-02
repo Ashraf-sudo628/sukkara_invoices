@@ -1,5 +1,17 @@
 {% extends 'base.html' %}
-
+<style>
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table th, table td {
+            font-size: 12px;
+            padding: 8px;
+            white-space: nowrap; /* يمنع انكسار النص داخل الخلايا */
+        }
+    }
+    
+</style>
 {% block content %}
 <div class="table-responsive card mt-4 p-4 shadow-lg">
     <div class="row">
@@ -16,9 +28,9 @@
                 <th> اسم الأسره</th>
                 <th>التاريخ</th>
                 <th>الإجمالي</th>
-                <th>المدفوع</th>
-                <th>المتبقي</th>
-                <th>الحاله</th>
+                {% comment %} <th>المدفوع</th>
+                <th>المتبقي</th>{% endcomment %}
+                <th>الحاله</th> 
                 <th>إجراء</th>
             </tr>
         </thead>
@@ -28,8 +40,8 @@
                 <td>{{ forloop.counter }}</td>
                 <td>{{ invoice.supplier.company_name }}</td>
                 <td>{{ invoice.invoice_date }}</td>
-                <td>{{ invoice.total_amount}} جنيه</td>
-                <td>{{ invoice.paid_amount}} جنيه</td>
+                {% comment %} <td>{{ invoice.total_amount}} جنيه</td>
+                <td>{{ invoice.paid_amount}} جنيه</td> {% endcomment %}
                 <td>{{ invoice.remaining_amount}} جنيه</td>
                 <td>{{ invoice.status }}</td>
                 <td>
@@ -53,7 +65,24 @@
                         </ul>
                     </div>                                                                             
                 </td>
+            </tr> 
+            {% comment %} <tr data-bs-toggle="collapse" data-bs-target="#details{{ invoice.id }}">
+                <td>{{ invoice.id }}</td>
+                <td>{{ invoice.supplier.company_name }}</td>
+                <td>{{ invoice.invoice_date }}</td>
+                <td>{{ invoice.total_amount }} جنيه</td>
+                <td>
+                    <button class="btn btn-sm btn-primary">عرض</button>
+                </td>
             </tr>
+            <tr class="collapse" id="details{{ invoice.id }}">
+                <td colspan="5">
+                    <p>المدفوع: {{ invoice.paid_amount }} جنيه</p>
+                    <p>المتبقي: {{ invoice.remaining_amount }} جنيه</p>
+                    <p>الحالة: {{ invoice.status }}</p>
+                </td>
+            </tr> {% endcomment %}
+            
             {% endfor %}
         </tbody>
 

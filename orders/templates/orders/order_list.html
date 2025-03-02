@@ -1,4 +1,16 @@
 {% extends 'base.html' %}
+<style>
+    @media (max-width: 768px) {
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table th, table td {
+            font-size: 12px;
+            padding: 8px;
+            white-space: nowrap; /* يمنع انكسار النص داخل الخلايا */
+        }
+    }
+</style>
 {% block content %}
 <div class="table-responsive card mt-4 p-4 shadow-lg">
     <div class="row">
@@ -11,7 +23,6 @@
             <tr>
                 <th>رقم الطلب</th>
                 <th>إسم الاسرة </th>
-                <th>التاريخ</th>
                 <th>المبلغ الإجمالي</th>
                 <th>إجراء</th>
             </tr>
@@ -21,7 +32,6 @@
             <tr class="order-item-form">
                 <td>{{forloop.counter }}</td>
                 <td>{{ order.supplier.company_name }}</td>
-                <td>{{ order.created_at }}</td>
                 <td>{{ order.total_price }} ريال </td>
                 <td>
                     <div class="btn-group">
