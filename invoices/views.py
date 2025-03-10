@@ -75,7 +75,6 @@ def invoice_detail(request, invoice_id):
         'form':form,
         'invoice': invoice,
         'dashboard_url': dashboard_url,
-        'calculated_total_price':0
     }
     return render(request, 'invoice/invoice_detail.html', context)
 @login_required
@@ -103,52 +102,36 @@ def invoice_list(request):
         }
     return render(request, 'invoice/invoice_list.html', context)
 
-def edit_daily_invoice(request, invoice_id):
-    # جلب الفاتورة اليومية بناءً على معرّفها
-    invoice = get_object_or_404(Invoice, id=invoice_id)
-    supplier = invoice.supplier  # جلب المورد المرتبط بالفاتورة
 
-    # جلب المنتجات الأصلية بدون تعديل
-    original_items = InvoiceItem.objects.filter(invoice=invoice)
-    
-    # إنشاء Formset لإضافة المنتجات المنتهية الصلاحية فقط
-    ExpiredProductFormSet = modelformset_factory(InvoiceItem, form=ExpiredProductForm, extra=1, can_delete=True)
-    
-    
+def edit_daily_invoice(request, invoice_id):
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    items   = invoice.items.all()
+    returns = items.filter(expired_quantity__gt=0)  # المنتجات المرتجعة فقط
+
+
     if request.method == 'POST':
-        formset = ExpiredProductFormSet(request.POST, queryset=InvoiceItem.objects.filter(invoice=invoice, quantity=0),form_kwargs={'supplier': supplier})
-        
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-            total_expired_cost = 0
-            
-            for item in instances:
-                item.invoice = invoice
-                item.total_price= item.expired_quantity * item.unit_price
-                total_expired_cost += item.total_price 
-                item.save()  
-            formset.save_m2m()
-            # تحديث إجمالي الفاتورة بعد خصم المنتجات المنتهية الصلاحية
-            invoice.total_amount -= total_expired_cost
-            invoice.remaining_amount = invoice.total_amount - invoice.paid_amount
-            invoice.current_balance -= total_expired_cost
-            invoice.save()
-            
-            supplier.current_balance -= total_expired_cost
-            supplier.save() 
-            messages.success(request, "the invoice has been updated successfully. Expired products have been removed.")
-            return redirect('invoice_detail', invoice_id=invoice.id)
-        else:
-            messages.error(request, "there are some errors in data.")
+        form = ExpiredProductForm(request.POST, request.FILES, invoice=invoice)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.invoice = invoice
+            item.unit_price = item.product_name.selling_price
+            if item.expired_quantity > 0:  # التأكد أن الكمية المرتجعة أكبر من صفر
+                item.total_price = item.unit_price * item.expired_quantity  # حساب الإجمالي
+                item.save()  # حفظ المرتجع
+                messages.success(request, "تمت إضافة المرتجع بنجاح")
+            else:
+                messages.error(request, "الكمية المرتجعة يجب أن تكون أكبر من صفر")
     else:
-        formset = ExpiredProductFormSet(queryset=InvoiceItem.objects.filter(invoice=invoice, quantity=0), form_kwargs={'supplier': supplier})
-    context = {
+        form = ExpiredProductForm(invoice=invoice)
+    context ={
         'invoice': invoice,
-        'original_items': original_items,
-        'formset': formset,
-        
+        'items': items,
+        'form': form,
+        'returns': returns,
     }
     return render(request, 'invoice/edit_daily_invoice.html', context)
+
+
 def add_payment(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     supplier = invoice.supplier  # جلب المورد المرتبط بالفاتورة

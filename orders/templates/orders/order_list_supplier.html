@@ -1,64 +1,66 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="table-responsive card mt-4 p-4 shadow-lg">
-    <div class="row">
-        <h4 class="col-6">طلباتي</h4>
+<div class="container-fluid mt-5">
+    <div class="table-responsive card mt-4 p-4 shadow-lg">
+        <div class="row">
+            <h4 class="col-6">طلباتي</h4>
+        </div>
+        <hr>
+        {% if orders %}
+        <table class="table table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>رقم الطلب</th>
+                    <th>التاريخ</th>
+                    <th>المبلغ الإجمالي</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="formset-container">
+                {% for order in orders %}
+                <tr class="order-item-form">
+                    <td>{{ forloop.counter  }}</td>
+                    <td>{{ order.created_at }}</td>
+                    <td>{{ order.total_price }} ريال</td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> عرض
+                                    </a>                                        
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'create_order' %}">
+                                        <i class="bi bi-pencil-fill me-1"></i> تعديل
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger delete-btn" href="{% url 'delete_order' order.id %}" data-order-id="{{ order.id }}">
+                                        <i class="bi bi-trash-fill me-1"></i> حذف
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>                                                                              
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-left col-6">
+            <a href="{% url 'create_order' %}" class="btn add">إنشاء طلب</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary mt-2">رجوع</a>
+        </div>
+        {% else %}
+        <p class="text-muted">لم تقم بإنشاء أي فواتير بعد.</p>
+        <div class="text-left col-6">
+            <a href="{% url 'create_order' %}" class="btn add">إنشاء طلب</a>
+        </div>
+        {% endif %}
     </div>
-    <hr>
-    {% if orders %}
-    <table class="table table-striped text-center align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>رقم الطلب</th>
-                <th>التاريخ</th>
-                <th>المبلغ الإجمالي</th>
-                <th>إجراء</th>
-            </tr>
-        </thead>
-        <tbody id="formset-container">
-            {% for order in orders %}
-            <tr class="order-item-form">
-                <td>{{ forloop.counter  }}</td>
-                <td>{{ order.created_at }}</td>
-                <td>{{ order.total_price }} ريال</td>
-                <td>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye"></i> عرض
-                                </a>                                        
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'edit_order' order.id %}">
-                                    <i class="bi bi-pencil-fill me-1"></i> تعديل
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item text-danger delete-btn" href="{% url 'delete_order' order.id %}" data-order-id="{{ order.id }}">
-                                    <i class="bi bi-trash-fill me-1"></i> حذف
-                                </a>
-                            </li>
-                        </ul>
-                    </div>                                                                              
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div class="text-left col-6">
-        <a href="{% url 'create_order' %}" class="add">إنشاء طلب</a>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">رجوع</a>
-    </div>
-    {% else %}
-    <p class="text-muted">لم تقم بإنشاء أي فواتير بعد.</p>
-    <div class="text-left col-6">
-        <a href="{% url 'create_order' %}" class="add">إنشاء طلب</a>
-    </div>
-    {% endif %}
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {

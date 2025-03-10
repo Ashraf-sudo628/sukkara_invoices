@@ -47,16 +47,20 @@ class Invoice(models.Model):
 
 class InvoiceItem(models.Model):
     invoice          = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="items")  # ربط الفاتورة بالمنتجات
-    product_name = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="invoices")
+    product_name     = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="invoices")
     quantity         = models.PositiveIntegerField(default=1)  # الكمية
     unit_price       = models.DecimalField(max_digits=10, decimal_places=2)  #     
     total_price      = models.DecimalField(max_digits=10, decimal_places=2)  # إجمالي السعر
     expired_quantity = models.IntegerField(default=0)  # ✅ عدد المنتجات منتهية الصلاحية
-
+    image            = models.ImageField(upload_to='photos', null=True , blank=True)
     def save(self, *args, **kwargs):
         self.total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
-
+    def save(self, *args, **kwargs):
+        if self.unit_price and self.expired_quantity:
+            self.total_price = self.unit_price * self.expired_quantity
+            self.quantity    = 0
+        super(InvoiceItem, self).save(*args, **kwargs)
     def __str__(self):
         return f"{self.product_name} - {self.invoice.invoice_number}"
 
@@ -80,3 +84,4 @@ class InvoicePayment(models.Model):
 
     def __str__(self):
         return f"Payment of {self.amount} for {self.invoice.invoice_number}"
+    

@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def add_product(request):
     if request.method == "POST":
+        print("product recieved",request.POST)  
         form = ProductForm(request.POST)
         if form.is_valid():
             product = form.save(commit=False)

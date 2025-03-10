@@ -2,361 +2,129 @@
 
 {% block content %}
 <div class="container-fluid mt-5">
-    <div class="card shadow-lg p-4">
-        <h2 class="text-center">إنشاء طلب جديد لمورد: {{ supplier.company_name }}</h2>
-        <form method="POST">
-            {% csrf_token %}
-            
-            <!-- معلومات المورد -->
-         
-            <div class="card p-4 shadow-lg">
-                <h4>معلومات المورد</h4>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label>اسم المورد:</label>
-                        <input type="text" class="form-control" value="{{ supplier.company_name }}" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label>رقم الهاتف:</label>
-                        <input type="text" class="form-control" value="{{ supplier.phone_number }}" readonly>
-                    </div>
-                    <div class="col-md-6 mt-2">
-                        <label>العنوان:</label>
-                        <input type="text" class="form-control" value="{{ supplier.address }}" readonly>
-                    </div>
-                    <div class="col-md-6 mt-2">
-                        <label>رقم الحساب البنكي:</label>
-                        <input type="text" class="form-control" value="{{ supplier.bank_account }}" readonly>
-                    </div>
-                </div>
-            </div>
-
-            <!-- جدول المنتجات -->
-            <div class="table-responsive card mt-4 p-4 shadow-lg">
-                <h4>معلومات المنتجات</h4>
-                <hr>
-                <table class="table table-striped text-center align-middle " id="add-products-table">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>اسم المنتج</th>
-                            <th>السعر</th>
-                            <th>مدة الصلاحية</th>
-                            <th>الكمية</th>
-                            <th>حذف</th>
-                        </tr>
-                    </thead>
-                    <tbody id="formset-container">
-                        {{ formset.management_form }}
-                        {% for form in formset %}
-                        <tr class="form-row">
-                            <td>
-                                {# نعرض القائمة المخصصة #}
-                                <select name="{{ form.product_name.html_name }}" class="form-control product-select">
-                                    <option value="">اختر المنتج</option>
-                                    {% for product in supplier.products.all %}
-                                        <option value="{{ product.id }}" 
-                                                data-sale_price="{{ product.selling_price }}" 
-                                                data-expiry_date="{{ product.expiry_period }}">
-                                            {{product.name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td>
-                                <input type="text" name="{{ form.price.html_name }}" class="form-control price" readonly>
-                            </td>
-                            <td>
-                                <input type="text" name="{{ form.expiry_period.html_name }}" class="form-control expiry-period" readonly>
-                            </td>
-                            <td>{{ form.quantity }}</td>
-                            <td>{{ form.DELETE }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <div class="card p-4 shadow-lg">
+        <h3 class="text-center">تفاصيل الطلب </h3>
+        <div class="table-responsive card mt-4 p-4 shadow-lg">
+            <h4>المنتجات المضافة</h4>
+            <hr>
+            <table class="table table-striped text-center align-middle" id="order-items-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th>اسم المنتج</th>
+                        <th>السعر</th>
+                        <th>الكمية</th>
+                        <th>مدة الصلاحية</th>
+                        <th>السعر الكلي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.price }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.expiry_period }} يوم</td>
+                        <td>{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             <div>
-                <button type="button" class="btn add mt-4" id="add-more">إضافة منتج </button>
                 
                 {% if request.user.is_staff %}
-                    <button type="submit" class="btn add mt-4">
-                        {% if order %}حفظ التعديلات{% else %}إرسال الطلب{% endif %}
-                    </button>
-                    <a href="{% url 'supplier_detail' supplier.id %}" class="btn btn-danger mt-4">إلغاء</a>
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">رجوع</a>
                 {% else %}
-                    <button type="submit" class="btn add mt-4">
-                        {% if order %}حفظ التعديلات{% else %}إرسال الطلب{% endif %}
-                    </button>
-                    <a href="{% url 'dashboard' %}" class="btn btn-danger mt-4">إلغاء</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">رجوع</a>
                 {% endif %}
                     
-
+                <button onclick="showForm()" class="btn btn-success mt-2 mb-2">إضافة المنتج</button>
             </div>
-        </form>
-        
+        </div>
+        <div id="add-form" class="card p-4 shadow-lg" style="display: none;">
+            <div class="col-md-6">
+                <form id="item-form" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_product_name">اختر المنتج</label>
+                        <select name="product_name" id="id_product_name" class="form-control">
+                            {% for product in products %}
+                                <option value="{{ product.id }}" data-price="{{ product.selling_price }}" data-expiry="{{ product.expiry_period }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_price">السعر</label>
+                        <input type="text" name="price" id="id_price" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="id_expiry_period">مدة الصلاحية (بالايام)</label>
+                        <input type="text" name="expiry_period" id="id_expiry_period" class="form-control" readonly>
+                    </div>
+                    <label> الكميه</label>
+                    {{ item_form.quantity }}
+                    {% if order %}
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+                    {% endif %}
+                    <button type="submit" class="btn btn-success mt-2 mb-2">إضافة</button>
+                    <button type="button" class="btn btn-danger" onclick="hideForm()">إلغاء</button>
+                </form>
+            </div>
+            {% comment %} <div class="col-md-6">
+                <form id="order-form" method="post">
+                    {% csrf_token %}
+                    {{ order_form.as_p }}
+                </form>
+            </div> {% endcomment %}
+        </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var formsetContainer = document.querySelector("#add-products-table tbody");
-        var totalFormsInput = document.querySelector("#id_form-TOTAL_FORMS"); // عدد النماذج الحالي
-    
-        // العثور على النموذج الفارغ (السطر الأول في الجدول)
-        var emptyForm = document.querySelector(".form-row");
-        
-        if (!emptyForm) {
-            console.error("⚠️ لم يتم العثور على .form-row داخل الجدول! تأكد من أن لديك صف واحد على الأقل.");
-            return;
-        }
-    
-        document.getElementById('add-more').addEventListener('click', function() {
-            var formIdx = parseInt(totalFormsInput.value); // احصل على العدد الحالي للنماذج
-            var formClone = emptyForm.cloneNode(true); // استنساخ الصف الأول
-            
-            // تحديث أسماء الحقول لجعلها متسلسلة
-            formClone.innerHTML = formClone.innerHTML.replace(/-\d+-/g, '-' + formIdx + '-');
-            formClone.innerHTML = formClone.innerHTML.replace(/id_form-\d+/g, 'id_form-' + formIdx);
-    
-            // إعادة تعيين القيم داخل الصف الجديد
-            formClone.querySelector(".product-select").value = "";
-            formClone.querySelector(".price").value = "";
-            formClone.querySelector(".expiry-period").value = "";
-    
-            // إضافة الصف الجديد إلى الجدول
-            formsetContainer.appendChild(formClone);
-    
-            // تحديث عدد النماذج في الفورم
-            totalFormsInput.value = formIdx + 1;
-        });
-    
-        // تحديث السعر ومدة الصلاحية عند اختيار المنتج (Event Delegation)
-        formsetContainer.addEventListener('change', function(event) {
-            if (event.target.classList.contains('product-select')) {
-                var selectedOption = event.target.options[event.target.selectedIndex];
-                var price = selectedOption.getAttribute("data-sale_price") || "";
-                var expiry_period = selectedOption.getAttribute("data-expiry_date") || "";
-    
-                var row = event.target.closest("tr");
-                row.querySelector(".price").value = price;
-                row.querySelector(".expiry-period").value = expiry_period;
-            }
-        });
-    
-        // حذف الصف عند الضغط على زر "حذف"
-        formsetContainer.addEventListener("click", function(event) {
-            if (event.target.classList.contains("remove-product")) {
-                event.target.closest("tr").remove();
-                updateFormIndexes(); // تحديث الفهارس بعد الحذف
-            }
-        });
-    
-        // تحديث الفهارس عند حذف عنصر
-        function updateFormIndexes() {
-            var forms = document.querySelectorAll('.form-row');
-            forms.forEach(function(row, index) {
-                row.innerHTML = row.innerHTML.replace(/-\d+-/g, '-' + index + '-');
-                row.innerHTML = row.innerHTML.replace(/id_form-\d+/g, 'id_form-' + index);
-            });
-    
-            // تحديث عدد النماذج
-            totalFormsInput.value = forms.length;
-        }
+    document.getElementById('id_product_name').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('id_price').value = selectedOption.dataset.price;
+        document.getElementById('id_expiry_period').value = selectedOption.dataset.expiry;
     });
-    
+
+    document.getElementById('item-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('order-items-table').querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.product_name}</td>
+                    <td>${item.price}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.total_price}</td>
+                    
+                `;
+                tableBody.appendChild(row);
+            });
+            // تنظيف نموذج المنتج
+            document.getElementById('item-form').reset();
+        });
+    });
+
+    function showForm() {
+        document.getElementById("add-form").style.display = "block";
+    }
+
+    function hideForm() {
+        document.getElementById("add-form").style.display = "none";
+    }
 </script>
-
-{% comment %} <div class="container-fluid mt-5">
-    <div class="card shadow-lg p-4">
-        <h2 class="text-center">إنشاء طلب جديد لمورد: {{ supplier.company_name }}</h2>
-        {{ formset.management_form }}
-        <form method="POST">
-            {% csrf_token %}
-            
-            <!-- معلومات المورد -->
-            <div class="card p-4 shadow-lg">
-                <h4>معلومات المورد</h4>
-                <hr>
-                <div class="row">
-                    <div class="col-md-6">
-                        <label>اسم المورد:</label>
-                        <input type="text" class="form-control" value="{{ supplier.company_name }}" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label>رقم الهاتف:</label>
-                        <input type="text" class="form-control" value="{{ supplier.phone_number }}" readonly>
-                    </div>
-                    <div class="col-md-6 mt-2">
-                        <label>العنوان:</label>
-                        <input type="text" class="form-control" value="{{ supplier.address }}" readonly>
-                    </div>
-                    <div class="col-md-6 mt-2">
-                        <label>رقم الحساب البنكي:</label>
-                        <input type="text" class="form-control" value="{{ supplier.bank_account }}" readonly>
-                    </div>
-                </div>
-            </div>
-
-            <!-- المنتجات -->
-            <div class="card mt-4 p-4 shadow-lg">
-                <h4>إضافة المنتجات</h4>
-                <hr>
-                <div id="product-container">
-                    <!-- سيتم إضافة المنتجات هنا ديناميكيًا -->
-                </div>
-            </div>
-
-            <div class="mt-4">
-                <button type="button" class="btn btn-primary" id="add-product">إضافة منتج</button>
-                <button type="submit" class="btn btn-success">إرسال الطلب</button>
-                <a href="{% url 'dashboard' %}" class="btn btn-danger">إلغاء</a>
-            </div>
-        </form>
-    </div>
-</div> {% endcomment %}
-{% comment %} <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let productContainer = document.getElementById('product-container');
-        let addProductButton = document.getElementById('add-product');
-    
-        addProductButton.addEventListener('click', function() {
-            let productIndex = document.querySelectorAll('.product-card').length;
-    
-            let productHTML = `
-                <div class="card product-card p-3 mt-3 shadow-sm">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label>اسم المنتج:</label>
-                            <select name="product-${productIndex}-name" class="form-control product-select">
-                                <option value="">اختر المنتج</option>
-                                {% for product in supplier.products.all %}
-                                    <option value="{{ product.id }}" 
-                                            data-sale_price="{{ product.selling_price }}" 
-                                            data-expiry_date="{{ product.expiry_period }}">
-                                        {{ product.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label>السعر:</label>
-                            <input type="text" name="product-${productIndex}-price" class="form-control price" readonly>
-                        </div>
-                        <div class="col-md-2">
-                            <label>مدة الصلاحية:</label>
-                            <input type="text" name="product-${productIndex}-expiry" class="form-control expiry-period" readonly>
-                        </div>
-                        <div class="col-md-2">
-                            <label>الكمية:</label>
-                            <input type="number" name="product-${productIndex}-quantity" class="form-control quantity" min="1">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger remove-product">❌</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-    
-            productContainer.insertAdjacentHTML('beforeend', productHTML);
-        });
-    
-        // تحديث السعر ومدة الصلاحية عند اختيار المنتج
-        productContainer.addEventListener('change', function(event) {
-            if (event.target.classList.contains('product-select')) {
-                let selectedOption = event.target.options[event.target.selectedIndex];
-                let row = event.target.closest(".product-card");
-                row.querySelector(".price").value = selectedOption.getAttribute("data-sale_price") || "";
-                row.querySelector(".expiry-period").value = selectedOption.getAttribute("data-expiry_date") || "";
-            }
-        });
-    
-        // حذف المنتج عند الضغط على الزر
-        productContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-product')) {
-                event.target.closest('.product-card').remove();
-            }
-        });
-    });
-</script> {% endcomment %}
-
-{% comment %} <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let productContainer = document.getElementById('product-container');
-    let addProductButton = document.getElementById('add-product');
-    let totalProductsInput = document.getElementById('total-products');
-
-    addProductButton.addEventListener('click', function() {
-        let productIndex = document.querySelectorAll('.product-card').length;
-
-        let productHTML = `
-            <div class="card product-card p-3 mt-3 shadow-sm" data-index="${productIndex}">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label>اسم المنتج:</label>
-                        <select name="form-${productIndex}-product_name" class="form-control product-select">
-                            <option value="">اختر المنتج</option>
-                            {% for product in supplier.products.all %}
-                                <option value="{{ product.id }}" 
-                                        data-sale_price="{{ product.selling_price }}" 
-                                        data-expiry_date="{{ product.expiry_period }}">
-                                    {{ product.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label>السعر:</label>
-                        <input type="text" name="form-${productIndex}-price" class="form-control price" readonly>
-                    </div>
-                    <div class="col-md-2">
-                        <label>مدة الصلاحية:</label>
-                        <input type="text" name="form-${productIndex}-expiry_period" class="form-control expiry-period" readonly>
-                    </div>
-                    <div class="col-md-2">
-                        <label>الكمية:</label>
-                        <input type="number" name="form-${productIndex}-quantity" class="form-control quantity" min="1">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger remove-product">❌</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        productContainer.insertAdjacentHTML('beforeend', productHTML);
-        totalProductsInput.value = productIndex + 1; // تحديث عدد المنتجات
-    });
-
-    // تحديث السعر ومدة الصلاحية عند اختيار المنتج
-    productContainer.addEventListener('change', function(event) {
-        if (event.target.classList.contains('product-select')) {
-            let selectedOption = event.target.options[event.target.selectedIndex];
-            let row = event.target.closest(".product-card");
-            row.querySelector(".price").value = selectedOption.getAttribute("data-sale_price") || "";
-            row.querySelector(".expiry-period").value = selectedOption.getAttribute("data-expiry_date") || "";
-        }
-    });
-
-    // حذف المنتج عند الضغط على الزر
-    productContainer.addEventListener('click', function(event) {
-        if (event.target.classList.contains('remove-product')) {
-            let productCard = event.target.closest('.product-card');
-            productCard.remove();
-
-            // إعادة ترتيب الفهارس
-            document.querySelectorAll('.product-card').forEach((card, index) => {
-                card.setAttribute("data-index", index);
-                card.querySelector(".product-select").setAttribute("name", `form-${index}-product_name`);
-                card.querySelector(".price").setAttribute("name", `form-${index}-price`);
-                card.querySelector(".expiry-period").setAttribute("name", `form-${index}-expiry_period`);
-                card.querySelector(".quantity").setAttribute("name", `form-${index}-quantity`);
-            });
-
-            totalProductsInput.value = document.querySelectorAll('.product-card').length;
-        }
-    });
-});
-</script> {% endcomment %}
-        
 {% endblock %}

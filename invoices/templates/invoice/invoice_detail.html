@@ -1,5 +1,25 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+    .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8); /* خلفية معتمة */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        cursor: pointer;
+    }
+    
+    .popup-image {
+        max-width: 90%;
+        max-height: 90%;
+    }
+</style>
 <div class="container-fluid mt-5">
     <div class="card p-4 shadow-lg">
         <div class="card p-4 shadow-lg">
@@ -45,7 +65,7 @@
                 {% if invoice.status != 'مدفوعة' or invoice.remaining_amount != 0 %}
                     <div class="mt-4">
                         <button type="button" class="btn add" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            <i class="fas fa-money-bill-wave"></i> إضافة دفعة
+                            <i class="fas fa-money-bill-wave"></i> إضافة
                         </button>
                     </div>
                 {%endif%}
@@ -64,7 +84,7 @@
                             <form method="post" action="{% url 'add_payment' invoice.id %}">
                                 {% csrf_token %}
                                 {{ form.as_p }}
-                                <button type="submit" class="btn add ">إرسال الدفعة</button>
+                                <button type="submit" class="btn add mb-2">إرسال</button>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
                             </form>
                         </div>
@@ -83,6 +103,7 @@
                             <th>الرجيع</th>
                             <th>سعر الوحده</th>
                             <th>السعر الاجمالي </th>
+                            <th>صوره المرتجع</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,14 +113,11 @@
                             <td>{{ form.quantity }}</td>
                             <td>{{ form.expired_quantity }}</td>
                             <td>{{ form.unit_price }}</td>
+                            <td>{{ form.total_price}}</td>
                             <td>
-                                
-                                {% if form.expired_quantity and form.expired_quantity != 0 %}
-                                    {{calculated_total_price }}
-                                {% else %}
-                                    {{ form.total_price}}
+                                {% if form.image %}
+                                <img class="product-image" src="{{ form.image.url }}" width="50">
                                 {% endif %}
-
                             </td>
                         </tr>
                         {% endfor %}
@@ -114,6 +132,39 @@
     </div>
 
 </div>
+<script>
+    // تحديد جميع عناصر الصور
+    const images = document.querySelectorAll('.product-image');
+
+    // إضافة معالج حدث النقر لكل صورة
+    images.forEach(image => {
+    image.addEventListener('click', () => {
+        // استدعاء دالة لعرض الصورة
+        showImage(image.src); 
+    });
+    });
+    function showImage(imageUrl) {
+        // إنشاء عنصر النافذة المنبثقة
+        const popup = document.createElement('div');
+        popup.classList.add('popup');
+        
+            // إنشاء عنصر الصورة داخل النافذة المنبثقة
+            const enlargedImage = document.createElement('img');
+            enlargedImage.src = imageUrl;
+            enlargedImage.classList.add('popup-image');
+        
+            // إضافة الصورة إلى النافذة المنبثقة
+            popup.appendChild(enlargedImage);
+        
+            // إضافة النافذة المنبثقة إلى الجسم (body)
+            document.body.appendChild(popup);
+        
+            // إضافة معالج حدث النقر لإزالة النافذة المنبثقة
+            popup.addEventListener('click', () => {
+            popup.remove();
+            });
+        }
+</script>
 
 
 {% endblock %}

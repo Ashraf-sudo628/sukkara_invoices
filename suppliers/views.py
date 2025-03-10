@@ -1,11 +1,12 @@
 import datetime
 from django.forms import modelformset_factory
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from invoices.tasks import generate_daily_invoice, update_invoice_after_deletion
 from orders.forms import OrderForm, OrderItemForm
 from orders.models import Order, OrderItem # type: ignore
 from .forms import SupplierRegistrationForm ,SupplierEditForm
-from django.contrib.auth import login , logout
+from django.contrib.auth import login , logout ,get_user_model
 from django.contrib.auth.models import User
 from invoices.models import *
 from django.contrib.auth.decorators import login_required ,user_passes_test
@@ -15,6 +16,7 @@ from django.utils.timezone import now
 from datetime import date 
 from django.contrib.auth.views import LoginView
 from products.models import *
+from django.contrib.auth.views import PasswordResetView
 
 def is_admin(user):
     return user.is_staff
@@ -84,7 +86,7 @@ def supplier_dashboard(request):
     today = now().date()  # تحديد اليوم الحالي
     try:
         supplier = Supplier.objects.get(user=request.user)  # جلب بيانات المورد المرتبط بالمستخدم
-        orders   = Order.objects.filter(supplier=supplier , order_date=today)  # جلب الطلبات الخاصة به
+        orders   = Order.objects.filter(supplier=supplier , order_date=today,total_price__gt=0)  # جلب الطلبات الخاصة به
     except Supplier.DoesNotExist:
         supplier = None
     print(",,,,,,,,,,,,,",supplier)
@@ -101,7 +103,7 @@ def supplier_dashboard(request):
 @user_passes_test(is_admin)  # يمنع غير المدير من الوصول
 def admin_dashboard(request):
     today = now().date()  # تحديد اليوم الحالي
-    orders = Order.objects.filter(order_date=today).order_by('-created_at')  # جلب كل الطلبات
+    orders = Order.objects.filter(order_date=today,total_price__gt=0).order_by('-created_at')  # جلب كل الطلبات
     
     invoices = Invoice.objects.filter(invoice_date=today).order_by('-invoice_date')  # جلب كل الفوات
     
@@ -141,51 +143,68 @@ def supplier_detail(request, supplier_id):
 def create_order_for_supplier(request, supplier_id):
     
     supplier = Supplier.objects.get(id=supplier_id)  # جلب بيانات المورد
-    # إنشاء نموذج فورم ست للمنتجات داخل الطلب
-    OrderItemFormSet = modelformset_factory(OrderItem, form=OrderItemForm,
-                                            fields=('product_name', 'price', 'quantity', 'expiry_period'),
-                                            extra=1, can_delete=True)
-    
+    products = Product.objects.filter(supplier=supplier)
+    today = now().date()
+
+    order, created = Order.objects.get_or_create(supplier=supplier, order_date=today)
+
+    item_form = OrderItemForm(supplier=supplier)
+
     if request.method == 'POST':
-        print("📩 ٌRecieved Data POST:", request.POST)  # ✅ طباعة البيانات المستلمة
-        form = OrderForm(request.POST)
-        formset = OrderItemFormSet(request.POST)
+        item_form = OrderItemForm(request.POST, request.FILES, supplier=supplier)
+        
+        if item_form.is_valid():
+            product = item_form.cleaned_data['product_name']
+            quantity = item_form.cleaned_data['quantity']
 
-        if form.is_valid() and formset.is_valid():
-            order = form.save(commit=False)  # إنشاء الطلب بدون حفظه فورًا
-            order.supplier = supplier  # ربط الطلب بالمورد
-            order.save()  # حفظ الطلب
+            # التحقق إذا كان المنتج موجود في نفس الطلب
+            existing_item = OrderItem.objects.filter(order=order, product_name=product).first()
             
-            print(f"📝  Created new order for supplier: {supplier.user.username}...")
+            if existing_item:
+                # لو المنتج موجود اجمع الكمية وحدث السعر الكلي
+                existing_item.quantity += quantity
+                existing_item.total_price = existing_item.quantity * existing_item.price
+                existing_item.save()
+            else:
+                # لو المنتج مش موجود ضيفه جديد
+                item = item_form.save(commit=False)
+                item.order = order
+                item.price = product.selling_price
+                item.total_price = quantity * item.price
+                item.save()
 
-            for item_form in formset:
-                if item_form.cleaned_data:  # ✅ تجنب الحقول الفارغة
-                    if item_form.cleaned_data.get("DELETE"):
-                        print(f"🗑️  Deleted product {item_form.cleaned_data.get('product_name')} from order.")
-                        item_form.instance.delete()
-                    else:
-                        order_item = item_form.save(commit=False)
-                        order_item.order = order  # ربط المنتج بالطلب
-                        order_item.save()
-
-            # ✅ تحديث الفاتورة بعد الإضافة أو الحذف
             update_invoice_after_deletion(order)
             generate_daily_invoice(supplier)
 
-            return redirect('admin_dashboard')  # إعادة التوجيه إلى لوحة التحكم
+            # عرض المنتجات في الجدول بدون تحديث الصفحة
+            order_items = OrderItem.objects.filter(order=order).prefetch_related('product_name')
+            data = [{'product_name': item.product_name.name, 'price': item.price, 'quantity': item.quantity, 'total_price': item.total_price} for item in order_items]
+            
+            return JsonResponse(data, safe=False)
         else:
-            print("❌ error in data ")  
-            print(form.errors)
-            print(formset.errors)
-            {'supplier': ['This field is required.']}
-            [{'product_name': ['This field is required.'], 'quantity': ['Enter a number.']}]
-    else:
-        form = OrderForm()
-        formset = OrderItemFormSet(queryset=OrderItem.objects.none())
+            print("item_form errors:", item_form.errors)
+
+    order_items = OrderItem.objects.filter(order=order).prefetch_related('product_name')
 
     context = {
-        'form': form,
-        'formset': formset,
-        'supplier': supplier,
-    }  
-    return render(request, 'orders/create_order.html', context)
+        'item_form': item_form,
+        'order_items': order_items,
+        'products': products,
+    }
+    return render(request, 'orders/create_order.html', context) 
+class CustomPasswordResetView(PasswordResetView):
+    def get_success_url(self):
+        return ''  # بترجع فاضية عشان يمنع أي Redirect
+
+    def form_valid(self, form):
+        email = form.cleaned_data['email']
+        User = get_user_model()
+
+        if User.objects.filter(email=email).exists():
+            super().form_valid(form)
+            return JsonResponse({"message": "✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني."}, status=200)
+        else:
+            return JsonResponse({"error": "❌ البريد الإلكتروني غير مسجل."}, status=400)
+
+    def form_invalid(self, form):
+        return JsonResponse({"error": "❌ برجاء إدخال بريد إلكتروني صحيح."}, status=400)

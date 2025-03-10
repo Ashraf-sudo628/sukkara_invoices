@@ -10,11 +10,6 @@ class OrderForm(forms.ModelForm):
         }
         
 class OrderItemForm(forms.ModelForm):
-    # product_name = forms.ModelChoiceField(
-    #     queryset=Product.objects.all(),
-    #     empty_label="اختر المنتج",
-    #     widget=forms.Select(attrs={'class': 'form-control product-select'})
-    # )
     product_name = forms.ModelChoiceField(
         queryset=Product.objects.all(),
         to_field_name="id",  # اجعل الفورم يتوقع الـ ID الخاص بالمنتج
@@ -23,20 +18,23 @@ class OrderItemForm(forms.ModelForm):
     class Meta:
         model = OrderItem
         fields = ['id','product_name', 'quantity', 'price', 'expiry_period']
-        widgets = {
-            'expiry_period': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
-            
+        lables = {
+            'product_name': 'المنتج',
+            'price': 'السعر',
+            'expiry_period': 'المدة الصلاحية (أيام)',
+            'quantity': 'الكمية',
             
         }
-
     def __init__(self, *args, **kwargs):
         supplier = kwargs.pop('supplier', None)
         super().__init__(*args, **kwargs)
         if supplier:
-            self.fields['name'].queryset = Product.objects.filter(supplier=supplier)
-            
+            self.fields['product_name'].queryset = Product.objects.filter(supplier=supplier)
+        self.fields['product_name'].widget.attrs.update({'class': 'form-select'})
+        self.fields['price'].widget.attrs.update({'class': 'form-control'})
+        self.fields['expiry_period'].widget.attrs.update({'class': 'form-control'})
+        self.fields['quantity'].widget.attrs.update({'class': 'form-control'})
+        
     def clean_quantity(self):
         quantity = self.cleaned_data.get("quantity")
         if quantity <= 0:

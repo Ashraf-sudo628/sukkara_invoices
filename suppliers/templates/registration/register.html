@@ -10,10 +10,13 @@
         display: flex;
         justify-content: center;
     }
+    body{
+        background-image: url('{% static 'images/background.jpg' %}');
+    }
 </style>
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
     <div class="logo-container text-center position-absolute">
-        <img src="{% static 'images/logo1.jpg' %}" alt="Logo" class="logo">
+        {% comment %} <img src="{% static 'images/logo1.jpg' %}" alt="Logo" class="logo"> {% endcomment %}
     </div>
     <div class="card shadow-lg p-4 rounded" style="width: 400px;">
         <h3 class="text-center mb-3">تسجيل المورد</h3>

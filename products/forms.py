@@ -6,10 +6,10 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = ['name', 'purchase_price', 'selling_price', 'expiry_period', 'notes']
         labels = {
-            'name': 'اسم المنتج',
-            'purchase_price': 'سعر الشراء',
+            'name': 'إسم المنتج',
+            'purchase_price': 'سعر الشراء (للحبة)',
             'selling_price': 'سعر البيع (إختياري)',
-            'expiry_period': 'مدة الصلاحية',
+            'expiry_period': 'مدة الصلاحية (باليوم)',
             'notes': 'ملاحظات',
         }
         widgets = {

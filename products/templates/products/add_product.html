@@ -6,20 +6,14 @@
     <h2 class="text-center">إضافة منتج جديد</h2>
     <form method="POST">
         {% csrf_token %}
-
-        <div class="table-responsive card mt-4 p-4 shadow-lg">
+        <div class="card p-4 shadow-lg">
             <h4>معلومات المنتج</h4>
             <hr>
-            <form method="POST">
-                {% csrf_token %}
-                <div class="card p-4 shadow-lg">
-                    {{ form.as_p }}
-                </div>
-            </form>
-            <div>
-                <button type="submit" class="btn add mt-4"> حفظ</button>
-                <a href="{% url 'product-list-supplier' %}" class="btn btn-danger mt-4">إلغاء</a>
-            </div>
+            {{ form.as_p }}
+        </div>
+        <div>
+            <button type="submit" class="btn mt-2 add"> حفظ</button>
+            <a href="{% url 'product-list-supplier' %}" class="btn btn-danger mt-2">إلغاء</a>
         </div>
     </form>
     </div>

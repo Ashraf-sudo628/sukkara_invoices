@@ -1,64 +1,67 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="table-responsive card p-4 shadow-lg">
-    <div class="row">
-        <h4 class="col-6">منتجاتي</h4>
+<div class="container-fluid mt-5">
+    <div class="table-responsive card p-4 shadow-lg">
+        <div class="row">
+            <h4 class="col-6">منتجاتي</h4>
+        </div>
+        <hr>
+        {% if products %}
+        <table class="table table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>إسم المنتج</th>
+                    <th>سعر البيع</th>
+                    <th> سعر الشراء</th>
+                    <th> مده الصلاحية</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="formset-container">
+                {% for product in products %}
+                <tr class="order-item-form">
+                    <td>{{forloop.counter}}</td>
+                    <td>{{ product.name  }}</td>
+                    <td>{{ product.selling_price }} ريال</td>
+                    <td>{{ product.purchase_price }} ريال</td>
+                    <td>{{ product.expiry_period }} يوم</td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="btn" href="{% url 'edit_product' product.id %}">
+                                        <i class="bi bi-pencil-fill me-1"></i> تعديل
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="btn text-danger delete-btn" href="{% url 'delete_product' product.id %}" data-product-id="{{ product.id }}">
+                                        <i class="bi bi-trash-fill me-1"></i> حذف
+                                    </a>
+                                </li> 
+                            </ul>
+                        </div> 
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div>
+            <a href="{% url 'add-product' %}" class="btn add mb-2"> إضافة منتج</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">رجوع</a>
+        </div>
+        {% else %}
+        <p class="text-muted">ليس لديك اي منتجات بعد</p>
+        <div>
+            <a href="{% url 'add-product' %}" class="btn add"> إضافة منتج</a>
+        </div>
+        {% endif %}
     </div>
-    <hr>
-    {% if products %}
-    <table class="table table-striped text-center align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>إسم المنتج</th>
-                <th>سعر البيع</th>
-                <th> سعر الشراء</th>
-                <th> مده الصلاحية</th>
-                <th>إجراء</th>
-            </tr>
-        </thead>
-        <tbody id="formset-container">
-            {% for product in products %}
-            <tr class="order-item-form">
-                <td>{{forloop.counter}}</td>
-                <td>{{ product.name  }}</td>
-                <td>{{ product.selling_price }} ريال</td>
-                <td>{{ product.purchase_price }} ريال</td>
-                <td>{{ product.expiry_period }} يوم</td>
-                <td>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="dropdown-item" href="{% url 'edit_product' product.id %}">
-                                    <i class="bi bi-pencil-fill me-1"></i> تعديل
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item text-danger delete-btn" href="{% url 'delete_product' product.id %}" data-product-id="{{ product.id }}">
-                                    <i class="bi bi-trash-fill me-1"></i> حذف
-                                </a>
-                            </li> 
-                        </ul>
-                    </div> 
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <div class="text-left col-6">
-        <a href="{% url 'add-product' %}" class="add"> إضافة منتج</a>
-        <a href="{% url 'dashboard' %}" class="btn btn-secondary">رجوع</a>
-    </div>
-    {% else %}
-    <p class="text-muted">ليس لديك اي منتجات بعد</p>
-    <div class="text-left col-6">
-        <a href="{% url 'add-product' %}" class="add"> إضافة منتج</a>
-    </div>
-    {% endif %}
 </div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll(".delete-btn").forEach(button => {

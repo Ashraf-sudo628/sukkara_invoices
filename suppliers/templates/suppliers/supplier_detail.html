@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<div class="container-fluid mt-5">
-    <div class="card p-4 shadow-lg">
+<div class="container-fluid">
+    <div class="table-responsive card mt-4 p-4 shadow-lg">
         <div class="card p-4 shadow-lg">
             <ol class="breadcrumb breadcrumb-no-gutter">
                 <li class="breadcrumb-item"><h4>
@@ -11,40 +12,39 @@
             </ol>
             <hr>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <label>اسم الأسره</label>
                     <input type="text" class="form-control" value="{{ supplier.company_name }}" readonly>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <label>رقم الهاتف</label>
                     <input type="text" class="form-control" value="{{ supplier.phone_number }}" readonly>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <label>رقم الحساب البنكي</label>
                     <input type="text" class="form-control" value="{{ supplier.bank_account }}" readonly>
                 </div>
-                <div class="col-md-6 mt-2">
+                <div class="col-md-6 mb-3 mt-2">
                     <label>الرصيد الحالي</label>
                     <input type="text" class="form-control" value="{{ supplier.current_balance }}" readonly>
                 </div>
-                <div class="col-md-6 mt-2">
+                <div class="col-md-6 mb-3 mt-2">
                     <label>البريد الالكتروني</label>
                     <input type="text" class="form-control" value="{{ supplier.email }}" readonly>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <label>العنوان</label>
                     <input type="text" class="form-control" value="{{ supplier.address }}" readonly>
                 </div>
             </div>
         </div>
-    
         <div class="table-responsive card mt-4 p-4 shadow-lg">
             <div class="row">
                 <h4 class=""> منتجات المورد</h4>
             </div>
             <hr>
             {% if products %}
-            <table class="table table-striped text-center align-middle">
+            <table class="table-responsive table table-striped text-center align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>#</th>
@@ -63,7 +63,7 @@
                         <td>{{ product.name }}</td>
                         <td>{{ product.selling_price }} ريال</td>
                         <td>{{ product.purchase_price }} ريال</td>
-                        <td>{{ product.expiry_period }} ريال</td>
+                        <td>{{ product.expiry_period }} يوم</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -72,36 +72,31 @@
             <p class="text-muted">لا يوجد أي منتجات بعد.</p>
             {% endif %}
         </div>
-
         <div class="table-responsive card mt-4 p-4 shadow-lg">
             <div class="row">
                 <h4 class="">فواتير المورد </h4>
             </div>
             <hr>
             {% if invoices %}
-            <table class="table table-striped text-center align-middle">
+            <table class="table-responsive table table-striped text-center align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>رقم الفاتوره</th>
-                        <th> اسم الأسره</th>
+                        <th> الأسره</th>
                         <th>التاريخ</th>
                         <th>الإجمالي</th>
                         <th>المدفوع</th>
                         <th>المتبقي</th>
-                        <th>الحاله</th>
                         <th>إجراء</th>
                     </tr>
                 </thead>
                 <tbody id="formset-container">
                     {% for invoice in invoices %}
                     <tr class="order-item-form">
-                        <td>{{ forloop.counter }}</td>
                         <td>{{ invoice.supplier.company_name }}</td>
                         <td>{{ invoice.invoice_date }}</td>
-                        <td>{{ invoice.total_amount}} جنيه</td>
-                        <td>{{ invoice.paid_amount}} جنيه</td>
-                        <td>{{ invoice.remaining_amount}} جنيه</td>
-                        <td>{{ invoice.status }}</td>
+                        <td>{{ invoice.total_amount}} ريال</td>
+                        <td>{{ invoice.paid_amount}} ريال</td>
+                        <td>{{ invoice.remaining_amount}} ريال</td>
                         <td>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -131,17 +126,17 @@
             {% else %}
             <p class="text-muted">لا يوحد فواتير بعد.</p>
             {% endif %}
+
         </div>
         <div class="table-responsive card mt-4 p-4 shadow-lg">
             <ol class="breadcrumb breadcrumb-no-gutter">
                 <h4 class=""> طلبات المورد / </h4>
                 <li class="breadcrumb-item"><h4>
                     <a class="breadcrumb-link" style="text-decoration: none;" href="{% url 'create_order' supplier.id %}"> إضافة طلب </a></h4></li>
-                
             </ol>
             <hr>
             {% if orders %}
-            <table class="table table-striped text-center align-middle">
+            <table class="table-responsive table table-striped text-center align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>رقم الطلب</th>
@@ -157,7 +152,7 @@
                         <td>{{forloop.counter }}</td>
                         <td>{{ order.supplier.company_name }}</td>
                         <td>{{ order.created_at }}</td>
-                        <td>{{ order.total_price }} جنيه</td>
+                        <td>{{ order.total_price }} ريال</td>
                         <td>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">

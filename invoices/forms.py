@@ -36,28 +36,22 @@ class InvoiceItemFormReadOnly(forms.ModelForm):
             
 class ExpiredProductForm(forms.ModelForm):
     product_name = forms.ModelChoiceField(
-        queryset=Product.objects.none(),
-        empty_label="اختر المنتج",
-        widget=forms.Select(attrs={'class': 'form-control product-select'})
+        queryset=Product.objects.all(),
+        empty_label="اختر المنتج"
     )
-
     class Meta:
         model = InvoiceItem
-        fields = ('product_name', 'expired_quantity', 'unit_price')
-        widgets = {
-                    'expired_quantity': forms.NumberInput(attrs={'class': 'form-control','required': 'false'})}
+        fields = ['product_name', 'expired_quantity', 'image']
+        labels = {
+                'product_name': 'إسم المنتج',
+                'expired_quantity': 'الكميه المُرتجعه',
+                'image': 'صورة المُرتجع',
+            }
     def __init__(self, *args, **kwargs):
-        supplier = kwargs.pop('supplier', None)
+        invoice = kwargs.pop('invoice', None)
         super().__init__(*args, **kwargs)
-        if supplier:
-            today = date.today()
-            self.fields['product_name'].queryset = OrderItem.objects.filter(
-                order__supplier=supplier
-            ).annotate(
-                days_since_order=ExpressionWrapper(
-                    today - F('order__order_date'),
-                    output_field=DurationField()
-                )
-            ).filter(
-                expiry_period__lt=F('days_since_order')
-            ).distinct()
+        if invoice:
+            self.fields['product_name'].queryset = Product.objects.filter(supplier=invoice.supplier)
+        self.fields['product_name'].widget.attrs.update({'class': 'form-select'})
+        self.fields['image'].widget.attrs.update({'class': 'form-control'})
+        self.fields['expired_quantity'].widget.attrs.update({'class': 'form-control'})

@@ -1,30 +1,6 @@
 {% extends 'base.html' %}
-<style>
-    @media (max-width: 768px) {
-        /* تحسين نمط الكروت */
-        .card {
-            width: 95% !important;
-            margin: auto;
-        }
-        /* تحسين الجدول ليكون مناسبًا للجوال */
-        .table-responsive {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        /* تصغير الصور في الـ Navbar */
-        .navbar-brand img {
-            width: 35px !important;
-            height: 35px !important;
-        }
-        /* تصغير زر تسجيل الخروج */
-        .navbar-nav .dropdown-menu {
-            font-size: 14px;
-        }
-    }
-
-</style>
 {% block content %}
-<div class="container mt-5">
+<div class="container-fluid mt-5">
     <div class="card shadow-lg p-4">
         <h2 class="text-center" style="color: #a58371;">لوحة التحكم</h2>
         <div class="card p-4 shadow-lg">
@@ -144,12 +120,12 @@
                                         </a>                                        
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{% url 'edit_order' order.id %}">
+                                        <a class="btn" href="{% url 'create_order' %}">
                                             <i class="bi bi-pencil-fill me-1"></i> تعديل
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item text-danger delete-btn" href="{% url 'delete_order' order.id %}" data-order-id="{{ order.id }}">
+                                        <a class="btn text-danger delete-btn" href="{% url 'delete_order' order.id %}" data-order-id="{{ order.id }}">
                                             <i class="bi bi-trash-fill me-1"></i> حذف
                                         </a>
                                     </li>

@@ -1,97 +1,88 @@
 {% extends 'base.html' %}
-<style>
-    @media (max-width: 768px) {
-        .table-responsive {
-            overflow-x: auto;
-        }
-        table th, table td {
-            font-size: 12px;
-            padding: 8px;
-            white-space: nowrap; /* يمنع انكسار النص داخل الخلايا */
-        }
-    }
-    
-</style>
-{% block content %}
-<div class="table-responsive card mt-4 p-4 shadow-lg">
-    <div class="row">
-        <h4 class="">
-                قائمة الفواتير 
-        </h4>
-    </div>
-    <hr>
-    {% if invoices %}
-    <table class="table table-striped text-center align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>رقم الفاتوره</th>
-                <th> اسم الأسره</th>
-                <th>التاريخ</th>
-                <th>الإجمالي</th>
-                {% comment %} <th>المدفوع</th>
-                <th>المتبقي</th>{% endcomment %}
-                <th>الحاله</th> 
-                <th>إجراء</th>
-            </tr>
-        </thead>
-        <tbody id="formset-container">
-            {% for invoice in invoices %}
-            <tr class="order-item-form">
-                <td>{{ forloop.counter }}</td>
-                <td>{{ invoice.supplier.company_name }}</td>
-                <td>{{ invoice.invoice_date }}</td>
-                {% comment %} <td>{{ invoice.total_amount}} جنيه</td>
-                <td>{{ invoice.paid_amount}} جنيه</td> {% endcomment %}
-                <td>{{ invoice.remaining_amount}} جنيه</td>
-                <td>{{ invoice.status }}</td>
-                <td>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li class="mb-2">
-                                <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-info btn-sm">
-                                    <i class="bi bi-eye"></i> عرض
-                                </a>                                         
-                            </li>
-                            {% if invoice.status != 'مدفوعة' %}
-                                <li class="mb-2">
-                                    <a href="{% url 'edit_daily_invoice' invoice.id %}" class="btn btn-info btn-sm">
-                                        <i class="bi bi-pencil-fill me-1"></i> إضافة مرتجع
-                                    </a>  
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </div>                                                                             
-                </td>
-            </tr> 
-            {% comment %} <tr data-bs-toggle="collapse" data-bs-target="#details{{ invoice.id }}">
-                <td>{{ invoice.id }}</td>
-                <td>{{ invoice.supplier.company_name }}</td>
-                <td>{{ invoice.invoice_date }}</td>
-                <td>{{ invoice.total_amount }} جنيه</td>
-                <td>
-                    <button class="btn btn-sm btn-primary">عرض</button>
-                </td>
-            </tr>
-            <tr class="collapse" id="details{{ invoice.id }}">
-                <td colspan="5">
-                    <p>المدفوع: {{ invoice.paid_amount }} جنيه</p>
-                    <p>المتبقي: {{ invoice.remaining_amount }} جنيه</p>
-                    <p>الحالة: {{ invoice.status }}</p>
-                </td>
-            </tr> {% endcomment %}
-            
-            {% endfor %}
-        </tbody>
 
-    </table>
-    <div>
-        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">رجوع</a>
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="table-responsive card mt-4 p-4 shadow-lg">
+        <div class="row">
+            <h4 class="">
+                    قائمة الفواتير 
+            </h4>
+        </div>
+        <hr>
+        {% if invoices %}
+        <table class="table table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>رقم الفاتوره</th>
+                    <th> اسم الأسره</th>
+                    <th>التاريخ</th>
+                    <th>الإجمالي</th>
+                    {% comment %} <th>المدفوع</th>
+                    <th>المتبقي</th>{% endcomment %}
+                    <th>الحاله</th> 
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="formset-container">
+                {% for invoice in invoices %}
+                <tr class="order-item-form">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ invoice.supplier.company_name }}</td>
+                    <td>{{ invoice.invoice_date }}</td>
+                    <td>{{ invoice.total_amount}} ريال</td>
+                    {% comment %} <td>{{ invoice.remaining_amount}} جنيه</td>total_amount
+                    <td>{{ invoice.paid_amount}} جنيه</td> {% endcomment %}
+                    <td>{{ invoice.status }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-white btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li class="mb-2">
+                                    <a href="{% url 'invoice_detail' invoice.id %}" class="btn btn-info btn-sm">
+                                        <i class="bi bi-eye"></i> عرض
+                                    </a>                                         
+                                </li>
+                                {% if invoice.status != 'مدفوعة' %}
+                                    <li class="mb-2">
+                                        <a href="{% url 'edit_daily_invoice' invoice.id %}" class="btn btn-info btn-sm">
+                                            <i class="bi bi-pencil-fill me-1"></i> إضافة مرتجع
+                                        </a>  
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>                                                                             
+                    </td>
+                </tr> 
+                {% comment %} <tr data-bs-toggle="collapse" data-bs-target="#details{{ invoice.id }}">
+                    <td>{{ invoice.id }}</td>
+                    <td>{{ invoice.supplier.company_name }}</td>
+                    <td>{{ invoice.invoice_date }}</td>
+                    <td>{{ invoice.total_amount }} جنيه</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary">عرض</button>
+                    </td>
+                </tr>
+                <tr class="collapse" id="details{{ invoice.id }}">
+                    <td colspan="5">
+                        <p>المدفوع: {{ invoice.paid_amount }} جنيه</p>
+                        <p>المتبقي: {{ invoice.remaining_amount }} جنيه</p>
+                        <p>الحالة: {{ invoice.status }}</p>
+                    </td>
+                </tr> {% endcomment %}
+                
+                {% endfor %}
+            </tbody>
+
+        </table>
+        <div>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">رجوع</a>
+        </div>
+        {% else %}
+        <p class="text-muted">لا يوحد فواتير بعد.</p>
+        {% endif %}
     </div>
-    {% else %}
-    <p class="text-muted">لا يوحد فواتير بعد.</p>
-    {% endif %}
 </div>
+
 {% endblock %}

@@ -38,10 +38,9 @@
                 {{ form.address }}
             </div>
 
-            <div class="text-center">
+            <div>
                 
-                <button type="submit" class="btn add">حفظ التعديلات</button>
-                
+                <button type="submit" class="btn add mb-2">حفظ</button>
                 {% if request.user.is_staff %}
                     <a href="{% url 'admin_dashboard' %}" class="btn btn-danger">إلغاء</a>
                 {% else %}

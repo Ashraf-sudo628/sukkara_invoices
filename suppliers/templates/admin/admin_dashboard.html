@@ -1,16 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<style>
-    @media (max-width: 768px) {
-        .card {
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-    }
-    
-</style>
-<div class="container-fluid mt-5">
+<div class="container-fluid">
     <div class="card shadow-lg p-4">
         <h2 class="text-center">لوحة التحكم</h2>
         
@@ -130,7 +121,7 @@
                                         </a>                           
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{% url 'edit_order' order.id %}">
+                                        <a class="btn" href="{% url 'create_order' order.supplier.id %}">
                                             <i class="bi bi-pencil-fill me-1"></i> تعديل
                                         </a>
                                     </li>

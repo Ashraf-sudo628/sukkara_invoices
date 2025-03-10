@@ -1,97 +1,121 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+    .enlarged-image {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+        z-index: 1000;
+        cursor: pointer;
+    }
+    .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8); /* خلفية معتمة */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        cursor: pointer;
+    }
+    
+    .popup-image {
+        max-width: 90%;
+        max-height: 90%;
+    }
+</style>
 <div class="container-fluid mt-5">
     <div class="card p-4 shadow-lg">
         <h3 class="text-center">  إضافة مرتجع للفاتوره : {{ invoice.invoice_number }}</h3>
         <div class="table-responsive card mt-4 p-4 shadow-lg">
-            <h4>المنتجات الأساسية</h4>
-            <hr>
+            <h4>المنتجات المرتجعه</h4>
             <table class="table table-striped text-center align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>اسم المنتج</th>
-                        <th>الكمية</th>
+                        <th>الرجيع</th>
                         <th>السعر للوحدة</th>
                         <th>إجمالي السعر</th>
+                        <th>الصوره</th>
+                        
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in original_items %}
+                    {% for item in returns %}
                     <tr>
                         <td>{{ item.product_name }}</td>
-                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.expired_quantity }}</td>
                         <td>{{ item.unit_price }}</td>
                         <td>{{ item.total_price }}</td>
+                        <td>
+                            {% if item.image %}
+                            <img class="product-image" src="{{ item.image.url }}" width="50">
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        <div class="table-responsive card mt-4 p-4 shadow-lg">
-            <h4> منتجات منتهية الصلاحية</h4>
-            <hr>
-            <form method="post">
-                {% csrf_token %}
-                {{ formset.management_form }}
-                <table class="table table-striped text-center align-middle" id="expired-products-table">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>اسم المنتج</th>
-                            <th>السعر للوحدة</th>
-                            <th>الكمية</th>
-                            <th>حذف</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for form in formset %}
-                        <tr class="form-row">
-                            <td>
-                                {# نعرض القائمة المخصصة #}
-                                <select name="{{ form.product_name.html_name }}" class="form-control product-select">
-                                    <option value="">اختر المنتج</option>
-                                    {% for order_item in form.product_name.field.queryset %}
-                                        <option value="{{ order_item.id }}" data-price="{{ order_item.price }}">
-                                            {{ order_item.product_name|default:"اسم غير متوفر" }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td>
-                                <input type="text" name="{{ form.unit_price.html_name }}" class="form-control unit-price" readonly>
-                            </td>
-                            <td>{{ form.expired_quantity }}</td>
-                            <td>{{ form.DELETE }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <button type="button" class="btn add" id="add-more">إضافة مرتجع </button>
-                <button type="submit" class="btn add">حفظ التعديلات</button>
-                <a href="{% url 'admin_dashboard' %}" class="btn btn-danger">إلغاء</a>
-            </form>
-        </div>
+            <div>
+                <button class="btn btn-primary" onclick="showForm()">إضافة مرتجع</button>
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">رجوع</a>    
+                
+            </div>
+            <div id="return-form" style="display: none;">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-success">إرجاع</button>
+                    <button type="button" class="btn btn-danger" onclick="hideForm()">إلغاء</button>
+                </form>
+            </div>
     </div>
+
 </div>
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // زر إضافة منتج جديد
-    document.getElementById('add-more').addEventListener('click', function() {
-        var formIdx = document.querySelectorAll('.form-row').length;
-        var formClone = document.querySelector('.form-row').cloneNode(true);
-        formClone.innerHTML = formClone.innerHTML.replace(/-\d+-/g, '-' + formIdx + '-');
-        formClone.innerHTML = formClone.innerHTML.replace(/id_form-\d+-/g, 'id_form-' + formIdx + '-');
-        document.querySelector('#expired-products-table tbody').appendChild(formClone);
-    });
+    // تحديد جميع عناصر الصور
+    const images = document.querySelectorAll('.product-image');
 
-    // تحديث السعر عند اختيار منتج من القائمة
-    document.querySelectorAll(".product-select").forEach(function (select) {
-        select.addEventListener("change", function () {
-            var selectedOption = this.options[this.selectedIndex];
-            var price = selectedOption.getAttribute("data-price") || "";
-            var unitPriceInput = this.closest("tr").querySelector(".unit-price");
-            unitPriceInput.value = price;
-        });
+    // إضافة معالج حدث النقر لكل صورة
+    images.forEach(image => {
+    image.addEventListener('click', () => {
+        // استدعاء دالة لعرض الصورة
+        showImage(image.src); 
     });
-});
+    });
+    function showImage(imageUrl) {
+        // إنشاء عنصر النافذة المنبثقة
+        const popup = document.createElement('div');
+        popup.classList.add('popup');
+        
+            // إنشاء عنصر الصورة داخل النافذة المنبثقة
+            const enlargedImage = document.createElement('img');
+            enlargedImage.src = imageUrl;
+            enlargedImage.classList.add('popup-image');
+        
+            // إضافة الصورة إلى النافذة المنبثقة
+            popup.appendChild(enlargedImage);
+        
+            // إضافة النافذة المنبثقة إلى الجسم (body)
+            document.body.appendChild(popup);
+        
+            // إضافة معالج حدث النقر لإزالة النافذة المنبثقة
+            popup.addEventListener('click', () => {
+            popup.remove();
+            });
+        }
+    function showForm() {
+        document.getElementById("return-form").style.display = "block";
+    }
+    
+    function hideForm() {
+        document.getElementById("return-form").style.display = "none";
+    }
 </script>
 {% endblock %}
